@@ -50,7 +50,7 @@ public class UserController {
                 new StandardResponse(200,"User Public Details Update Status : ", updateStatus),HttpStatus.OK
         );
     }
-    @GetMapping("send_otp_for_two_step_vertification")
+    @GetMapping("send_otp_for_two_step_verification")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> sendOTPtoEmail(@RequestParam("email")String email){
         OtpResponse otpResponse = userService.sendOtpToEmail(email);
@@ -58,7 +58,7 @@ public class UserController {
                 new StandardResponse(200,"Otp Mail Send Status : ",otpResponse),HttpStatus.OK
         );
     }
-    @PostMapping("check_otp_for_two_step_vertification")
+    @PostMapping("check_otp_for_two_step_verification")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> checkOTP(@RequestBody CheckOTPDTO checkOTPDTO){
         boolean otpCheckStatus = userService.checkOTP(checkOTPDTO);

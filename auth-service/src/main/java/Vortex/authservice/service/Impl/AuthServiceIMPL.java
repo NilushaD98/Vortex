@@ -67,7 +67,7 @@ public class AuthServiceIMPL implements AuthService {
             User user = byEmailEquals.get();
             user.setPassword(passwordEncoder.encode(changePasswordDTO.getPassword()));
             userRepository.save(user);
-            return authenticate(new DefaultAuthenticationDTO(user.getEmail(), user.getPassword()));
+            return authenticate(new DefaultAuthenticationDTO(user.getEmail(), changePasswordDTO.getPassword()));
         }else{
             throw new UserNotFoundException();
         }
