@@ -26,8 +26,9 @@ public class SecurityConfiguration {
 
     public static final String[] permittedURL = {
             "/vortexcoreservice/api/v1/user/**",
-            "/vortexcoreservice/api/v1/default_login",
-            "/vortexcoreservice/api/v1/user/find_account_by_email"
+            "/vortexcoreservice/api/v1/**",
+            "/vortexcoreservice/api/v1/user/find_account_by_email",
+            "/vortexcoreservice/api/v1/user/send_otp"
     };
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {

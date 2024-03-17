@@ -1,7 +1,11 @@
 package Vortex.authservice.controller;
 
+import Vortex.authservice.dto.request.ChangePasswordDTO;
+import Vortex.authservice.dto.request.CheckOTPDTO;
 import Vortex.authservice.dto.request.UpdateUserPublicDetailsDTO;
 import Vortex.authservice.dto.request.UserSignUpDTO;
+import Vortex.authservice.dto.response.AuthResponseDTO;
+import Vortex.authservice.dto.response.OtpResponse;
 import Vortex.authservice.dto.response.UserByEmailDTO;
 import Vortex.authservice.service.UserService;
 import Vortex.authservice.util.StandardResponse;
@@ -44,6 +48,22 @@ public class UserController {
         String updateStatus = userService.updateUserDetails(updateUserPublicDetailsDTO);
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"User Public Details Update Status : ", updateStatus),HttpStatus.OK
+        );
+    }
+    @GetMapping("send_otp_for_two_step_vertification")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<StandardResponse> sendOTPtoEmail(@RequestParam("email")String email){
+        OtpResponse otpResponse = userService.sendOtpToEmail(email);
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Otp Mail Send Status : ",otpResponse),HttpStatus.OK
+        );
+    }
+    @PostMapping("check_otp_for_two_step_vertification")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<StandardResponse> checkOTP(@RequestBody CheckOTPDTO checkOTPDTO){
+        boolean otpCheckStatus = userService.checkOTP(checkOTPDTO);
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"OTP Checked Status : ", otpCheckStatus),HttpStatus.OK
         );
     }
 }

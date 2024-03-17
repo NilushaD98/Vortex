@@ -1,16 +1,20 @@
 package Vortex.authservice.service.Impl;
 
+import Vortex.authservice.dto.request.ChangePasswordDTO;
 import Vortex.authservice.dto.request.DefaultAuthenticationDTO;
 import Vortex.authservice.dto.response.AuthResponseDTO;
 import Vortex.authservice.entity.Token;
 import Vortex.authservice.entity.User;
+import Vortex.authservice.exceptions.BadCredentialException;
 import Vortex.authservice.exceptions.UserNotFoundException;
 import Vortex.authservice.repository.TokenRepository;
 import Vortex.authservice.repository.UserRepository;
 import Vortex.authservice.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +22,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceIMPL implements AuthService {
 
 
@@ -25,11 +30,19 @@ public class AuthServiceIMPL implements AuthService {
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
     private final JwtServiceIMPL jwtService;
+    private final PasswordEncoder passwordEncoder;
     @Override
     public AuthResponseDTO authenticate(DefaultAuthenticationDTO authenticationRequest) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authenticationRequest.getUsername(),authenticationRequest.getPassword())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(authenticationRequest.getUsername(),authenticationRequest.getPassword())
+            );
+        }catch (Exception e){
+            log.error(e.getMessage());
+            throw new BadCredentialException();
+        }
+
+
         Optional<User> user = userRepository.findByEmailEquals(authenticationRequest.getUsername());
         if(user.isPresent()){
             revokeAllUserToken(user.get());
@@ -46,6 +59,20 @@ public class AuthServiceIMPL implements AuthService {
             throw new UserNotFoundException();
         }
     }
+
+    @Override
+    public AuthResponseDTO passwordChange(ChangePasswordDTO changePasswordDTO) {
+        Optional<User> byEmailEquals = userRepository.findByEmailEquals(changePasswordDTO.getEmail());
+        if(byEmailEquals.isPresent()){
+            User user = byEmailEquals.get();
+            user.setPassword(passwordEncoder.encode(changePasswordDTO.getPassword()));
+            userRepository.save(user);
+            return authenticate(new DefaultAuthenticationDTO(user.getEmail(), user.getPassword()));
+        }else{
+            throw new UserNotFoundException();
+        }
+    }
+
     private void revokeAllUserToken(User user){
         List<Token> tokens = tokenRepository.findTokensByUserEmailEquals(user.getEmail());
         if(tokens.isEmpty()){

@@ -20,6 +20,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
     public ResponseEntity<Object> handleUserNotFoundException(
             UserNotFoundException ex, WebRequest request) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("User already present in the database");
+                .body("User not found  in the database");
     }
+    @ExceptionHandler(EmailSenderErrorResponse.class)
+    public ResponseEntity<Object> handleEmailSenderErrorResponse(
+            EmailSenderErrorResponse ex,WebRequest request
+    ){
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body("The Email Service Not Available");
+    }
+    @ExceptionHandler(BadCredentialException.class)
+    public ResponseEntity<Object> handleBadCredentialException(
+            BadCredentialException ex,WebRequest request
+    ){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username or Password Invalid");
+    }
+
 }
