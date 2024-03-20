@@ -1,12 +1,18 @@
 package Vortex.authservice.controller;
 
+import Vortex.authservice.dto.UserDTO;
 import Vortex.authservice.dto.request.*;
 import Vortex.authservice.dto.response.AuthResponseDTO;
 import Vortex.authservice.dto.response.OtpResponse;
 import Vortex.authservice.dto.response.UserByEmailDTO;
 import Vortex.authservice.service.UserService;
 import Vortex.authservice.util.StandardResponse;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import lombok.RequiredArgsConstructor;
+import org.bson.Document;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,7 +46,6 @@ public class UserController {
                 new StandardResponse(200,"User By Email : ",user),HttpStatus.OK
         );
     }
-    @PreAuthorize("hasAuthority()")
     @GetMapping("get_user_by_id")
     public ResponseEntity<StandardResponse> getUserById(@RequestParam("user_id") String user_id){
         UserByEmailDTO userByEmailDTO = userService.getUserById(user_id);
@@ -79,5 +84,27 @@ public class UserController {
     @PostMapping("get_followers_data_list")
     public List<FollowerDetailsDTO> getFollowersDataList(@RequestBody List<String> followersUserEmailList){
         return userService.getFollowersDataList(followersUserEmailList);
+    }
+    @GetMapping("user_by_email")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<StandardResponse> userByEmail(@RequestParam("email")String email){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"User by Email : ",userService.userByEmail(email)),HttpStatus.OK
+        );
+    }
+    @PutMapping("update_user_profile")
+    public ResponseEntity<StandardResponse> updateUser(@RequestBody UserDTO userDTO){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"User Update Status ",userService.userUpdate(userDTO)),HttpStatus.OK
+        );
+    }
+    @GetMapping("view_another_user's_profile")
+    public ResponseEntity<StandardResponse> viewAnotherUser(
+            @RequestParam("viewUserEmail") String viewUserEmail,
+            @RequestParam("userEmail") String userEmail
+    ){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"View Another User",userService.viewAnotherUser(userEmail,viewUserEmail)),HttpStatus.OK
+        );
     }
 }

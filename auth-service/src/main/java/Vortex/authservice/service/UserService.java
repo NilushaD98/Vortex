@@ -1,5 +1,6 @@
 package Vortex.authservice.service;
 
+import Vortex.authservice.dto.UserDTO;
 import Vortex.authservice.dto.request.*;
 import Vortex.authservice.dto.response.AuthResponseDTO;
 import Vortex.authservice.dto.response.OtpResponse;
@@ -25,4 +26,10 @@ public interface UserService {
     List<FollowerDetailsDTO> getFollowingDataList(List<String> followingUserEmailList);
 
     List<FollowerDetailsDTO> getFollowersDataList(List<String> followersUserEmailList);
+
+    UserDTO userByEmail(String email);
+
+    Boolean userUpdate(UserDTO userDTO);
+
+    UserDTO viewAnotherUser(String userEmail, String viewUserEmail);
 }

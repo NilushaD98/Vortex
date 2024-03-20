@@ -1,0 +1,33 @@
+package Vortex.postservice.dto.response;
+
+import Vortex.postservice.enums.PostPublicStatus;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Date;
+import java.util.List;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class AllPostViewDTO {
+
+    private String postID;
+    private String postAuthorEmail;
+    private String postAuthorName;
+    private String postAuthorProfileImageUrl;
+    private String mediaLink;
+    private String caption;
+    private Date postedTime;
+    private long likeCount;
+    private long commentCount;
+    private PostPublicStatus postPublicStatus;
+    private List<String> taggedUserEmailList;
+    private String sharedUserEmail;
+    private String sharedUserName;
+    private String sharedUserProfileImageUrl;
+    private String sharedComment;
+    private Date sharedTime;
+    private Boolean userLikedStatus;
+}

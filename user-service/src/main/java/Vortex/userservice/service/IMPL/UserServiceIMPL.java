@@ -1,13 +1,15 @@
 package Vortex.userservice.service.IMPL;
-
+import Vortex.userservice.dto.response.FollowersAndFollowingCountDTO;
+import Vortex.userservice.dto.response.FollowingDTO;
+import Vortex.userservice.feign.AuthServiceProxy;
 import Vortex.userservice.collection.Followers;
 import Vortex.userservice.collection.Following;
 import Vortex.userservice.dto.request.FollowRequestDTO;
 import Vortex.userservice.dto.request.FollowerDetailsDTO;
-import Vortex.userservice.feign.AuthServiceProxy;
 import Vortex.userservice.repository.FollowersRepository;
 import Vortex.userservice.repository.FollowingRepository;
 import Vortex.userservice.service.UserService;
+import Vortex.userservice.util.mappers.UserMapper;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -18,6 +20,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,7 +36,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserServiceIMPL implements UserService {
+public class UserServiceIMPL implements UserService{
 
     @Autowired
     private FollowersRepository followersRepository;
@@ -34,6 +45,10 @@ public class UserServiceIMPL implements UserService {
     @Autowired
     private AuthServiceProxy authServiceProxy;
     private final MongoDatabase mongoDatabase;
+    @Autowired
+    private MongoOperations mongoOperations;
+    @Autowired
+    private UserMapper userMapper;
 
 
     public  UserServiceIMPL() {
@@ -106,4 +121,37 @@ public class UserServiceIMPL implements UserService {
             return followerDetailsDTOList;
         }
     }
+
+    @Override
+    public FollowersAndFollowingCountDTO getFollowersAndFollowingCount(String email) {
+        AggregationOperation match = Aggregation.match(Criteria.where("userEmail").is(email));
+        AggregationOperation project = Aggregation.project().and("followingUserEmailList").size().as("size");
+        AggregationOperation project1 = Aggregation.project().and("followersEmailList").size().as("size");
+        Aggregation aggregation = Aggregation.newAggregation(match, project);
+        Aggregation aggregation2 = Aggregation.newAggregation(match, project1);
+        Document result = mongoOperations.aggregate(aggregation, "following", Document.class).getUniqueMappedResult();
+        Document result1 = mongoOperations.aggregate(aggregation2, "followers", Document.class).getUniqueMappedResult();
+        FollowersAndFollowingCountDTO followersAndFollowingCountDTO = new FollowersAndFollowingCountDTO();
+        log.info(result.toString());
+        if(result == null){
+            followersAndFollowingCountDTO.setFollowingCount(0);
+        }else {
+            followersAndFollowingCountDTO.setFollowingCount(result.getInteger("size"));
+        }
+        if(result1 == null){
+            followersAndFollowingCountDTO.setFollowersCount(0);
+        }else {
+            followersAndFollowingCountDTO.setFollowersCount(result1.getInteger("size"));
+        }
+
+        return followersAndFollowingCountDTO;
+    }
+
+    @Override
+    public FollowingDTO getFollowingListForPostService(String email) {
+        Following following = followingRepository.findByUserEmailEquals(email);
+        FollowingDTO followingDTO  = userMapper.FollowingEntityToDTO(following);
+        return followingDTO;
+    }
 }
+

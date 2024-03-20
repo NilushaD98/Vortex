@@ -1,5 +1,6 @@
 package Vortex.authservice.service.Impl;
 
+import Vortex.authservice.dto.UserDTO;
 import Vortex.authservice.dto.request.*;
 import Vortex.authservice.dto.response.AuthResponseDTO;
 import Vortex.authservice.dto.response.OtpResponse;
@@ -17,8 +18,13 @@ import Vortex.authservice.repository.UserRepository;
 import Vortex.authservice.service.AuthService;
 import Vortex.authservice.service.UserService;
 import Vortex.authservice.util.mappers.UserMapper;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.Document;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -44,6 +50,7 @@ public class UserServiceIMPL implements UserService{
     private final OTPRepository otpRepository;
     private final SellerDetailsRepository sellerDetailsRepository;
     private final UserMapper userMapper;
+
 
 
     @Override
@@ -162,17 +169,57 @@ public class UserServiceIMPL implements UserService{
             return authService.authenticate(new DefaultAuthenticationDTO(sellerSignUpDTO.getEmail(),sellerSignUpDTO.getPassword()));
         }
     }
-
     @Override
     public List<FollowerDetailsDTO> getFollowingDataList(List<String> followingUserEmailList) {
         return userMapper.EntityTOFollowerDetailsDTO(userRepository.findByEmailIn(followingUserEmailList));
     }
-
     @Override
     public List<FollowerDetailsDTO> getFollowersDataList(List<String> followersUserEmailList) {
         return userMapper.EntityTOFollowerDetailsDTO(userRepository.findByEmailIn(followersUserEmailList));
     }
-
+    @Override
+    public UserDTO userByEmail(String email) {
+        Optional<User> user = userRepository.findByEmailEquals(email);
+        if(user.isPresent()){
+            return userMapper.EntityToDTO(user.get());
+        }else {
+            throw new UserNotFoundException();
+        }
+    }
+    @Override
+    public Boolean userUpdate(UserDTO userDTO) {
+        Optional<User> user = userRepository.findByEmailEquals(userDTO.getEmail());
+        if(user.isPresent()){
+            User updateUserEntity = user.get();
+            updateUserEntity.setFirstName(userDTO.getFirstName());
+            updateUserEntity.setLastName(userDTO.getLastName());
+            updateUserEntity.setBirthDay(userDTO.getBirthDay());
+            updateUserEntity.setContact(userDTO.getContact());
+            updateUserEntity.setCountry(userDTO.getCountry());
+            updateUserEntity.setBio(userDTO.getBio());
+            userRepository.save(updateUserEntity);
+            return true;
+        }else {
+            throw new UserNotFoundException();
+        }
+    }
+    @Override
+    public UserDTO viewAnotherUser(String userEmail, String viewUserEmail) {
+        MongoClient mongoClient = MongoClients.create("mongodb+srv://root:1234@cluster0.ucithrp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
+        MongoDatabase mongoDatabase = mongoClient.getDatabase("user");
+        MongoCollection<Document> following = mongoDatabase.getCollection("following");
+        Document checkIfFollow = new Document("userEmail", viewUserEmail).append("likedEmailList", userEmail);
+        Document likeResult = following.find(checkIfFollow).first();
+        boolean userLikedStatus = likeResult != null;
+        Optional<User> user = userRepository.findByEmailEquals(userEmail);
+        if(user.isPresent()){
+            UserDTO userDTO = userMapper.EntityToDTO(user.get());
+            userDTO.setFollowedStatus(userLikedStatus);
+            return userDTO;
+        }else {
+            throw new UserNotFoundException();
+        }
+    }
     public static int generateRandomOTP() {
         int min = 100000;
         int max = 999999;
