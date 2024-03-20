@@ -1,9 +1,6 @@
 package Vortex.authservice.service;
 
-import Vortex.authservice.dto.request.ChangePasswordDTO;
-import Vortex.authservice.dto.request.CheckOTPDTO;
-import Vortex.authservice.dto.request.UpdateUserPublicDetailsDTO;
-import Vortex.authservice.dto.request.UserSignUpDTO;
+import Vortex.authservice.dto.request.*;
 import Vortex.authservice.dto.response.AuthResponseDTO;
 import Vortex.authservice.dto.response.OtpResponse;
 import Vortex.authservice.dto.response.UserByEmailDTO;
@@ -21,4 +18,5 @@ public interface UserService {
 
     boolean checkOTP(CheckOTPDTO checkOTPDTO);
 
+    AuthResponseDTO sellerSignUp(SellerSignUpDTO sellerSignUpDTO);
 }

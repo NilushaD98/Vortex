@@ -1,9 +1,6 @@
 package Vortex.authservice.controller;
 
-import Vortex.authservice.dto.request.ChangePasswordDTO;
-import Vortex.authservice.dto.request.CheckOTPDTO;
-import Vortex.authservice.dto.request.UpdateUserPublicDetailsDTO;
-import Vortex.authservice.dto.request.UserSignUpDTO;
+import Vortex.authservice.dto.request.*;
 import Vortex.authservice.dto.response.AuthResponseDTO;
 import Vortex.authservice.dto.response.OtpResponse;
 import Vortex.authservice.dto.response.UserByEmailDTO;
@@ -25,6 +22,13 @@ public class UserController {
     public ResponseEntity<StandardResponse> userSignUp(@RequestBody UserSignUpDTO userSignUpDTO){
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(201,"User Sign Up Status : ",userService.userSignUp(userSignUpDTO)), HttpStatus.CREATED
+        );
+    }
+    @PostMapping("seller_sign_up")
+    public ResponseEntity<StandardResponse> sellerSignUp(@RequestBody SellerSignUpDTO sellerSignUpDTO){
+        AuthResponseDTO authResponseDTO = userService.sellerSignUp(sellerSignUpDTO);
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(201,"Seller Sign Up Status : ",authResponseDTO),HttpStatus.OK
         );
     }
     @GetMapping("find_account_by_email")

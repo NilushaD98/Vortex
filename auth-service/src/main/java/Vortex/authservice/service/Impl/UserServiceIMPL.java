@@ -5,12 +5,15 @@ import Vortex.authservice.dto.response.AuthResponseDTO;
 import Vortex.authservice.dto.response.OtpResponse;
 import Vortex.authservice.dto.response.UserByEmailDTO;
 import Vortex.authservice.entity.OTP;
+import Vortex.authservice.entity.SellerDetails;
 import Vortex.authservice.entity.User;
 import Vortex.authservice.entity.UserPublicDetails;
+import Vortex.authservice.enums.Roles;
 import Vortex.authservice.exceptions.EmailSenderErrorResponse;
 import Vortex.authservice.exceptions.UserAlreadyReportedException;
 import Vortex.authservice.exceptions.UserNotFoundException;
 import Vortex.authservice.repository.OTPRepository;
+import Vortex.authservice.repository.SellerDetailsRepository;
 import Vortex.authservice.repository.UserPublicDetailsRepository;
 import Vortex.authservice.repository.UserRepository;
 import Vortex.authservice.service.AuthService;
@@ -40,9 +43,10 @@ public class UserServiceIMPL implements UserService{
     private  final PasswordEncoder passwordEncoder;
     private final AuthService authService;
     private final UserPublicDetailsRepository userPublicDetailsRepository;
-    @Autowired
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
     private final OTPRepository otpRepository;
+    private final SellerDetailsRepository sellerDetailsRepository;
+
 
     @Override
     public AuthResponseDTO userSignUp(UserSignUpDTO userSignUpDTO) {
@@ -123,7 +127,6 @@ public class UserServiceIMPL implements UserService{
             throw new EmailSenderErrorResponse();
         }
     }
-
     @Override
     public boolean checkOTP(CheckOTPDTO checkOTPDTO) {
         Optional<OTP> otp = otpRepository.findByOtpEquals(checkOTPDTO.getOtp());
@@ -133,7 +136,33 @@ public class UserServiceIMPL implements UserService{
             return false;
         }
     }
-
+    @Override
+    public AuthResponseDTO sellerSignUp(SellerSignUpDTO sellerSignUpDTO) {
+        Optional<User> byEmailEquals = userRepository.findByEmailEquals(sellerSignUpDTO.getEmail());
+        if(byEmailEquals.isPresent()){
+            throw new UserAlreadyReportedException();
+        }else {
+            User user = new User(
+                sellerSignUpDTO.getFirstName(),
+                    sellerSignUpDTO.getLastName(),
+                    null,
+                    sellerSignUpDTO.getEmail(),
+                    sellerSignUpDTO.getContact(),
+                    sellerSignUpDTO.getCountry(),
+                    passwordEncoder.encode(sellerSignUpDTO.getPassword()),
+                    Roles.SELLER
+            );
+            userRepository.save(user);
+            SellerDetails sellerDetails = new SellerDetails(
+                    user.getUserid(),
+                    sellerSignUpDTO.getNic(),
+                    sellerSignUpDTO.getMetaMaskID(),
+                    sellerSignUpDTO.getAddress()
+            );
+            sellerDetailsRepository.save(sellerDetails);
+            return authService.authenticate(new DefaultAuthenticationDTO(sellerSignUpDTO.getEmail(),sellerSignUpDTO.getPassword()));
+        }
+    }
     public static int generateRandomOTP() {
         int min = 100000;
         int max = 999999;

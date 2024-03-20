@@ -41,8 +41,6 @@ public class AuthServiceIMPL implements AuthService {
             log.error(e.getMessage());
             throw new BadCredentialException();
         }
-
-
         Optional<User> user = userRepository.findByEmailEquals(authenticationRequest.getUsername());
         if(user.isPresent()){
             revokeAllUserToken(user.get());
