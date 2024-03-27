@@ -12,14 +12,13 @@ import org.springframework.context.annotation.Bean;
 public class GatewayApplication {
 	@Bean
 	public RouteLocator routeLocator(RouteLocatorBuilder routeLocatorBuilder){
+
 		return routeLocatorBuilder
 				.routes()
-				.route("user-service",predicateSpec ->
-						predicateSpec
+				.route(predicateSpec -> predicateSpec
 						.path("/user/**")
 						.uri("http://localhost:8200"))
-				.route("auth-service",predicateSpec ->
-					predicateSpec
+				.route(predicateSpec -> predicateSpec
 							.path("/vortexcoreservice/**")
 							.uri("http://localhost:8100"))
 				.build();

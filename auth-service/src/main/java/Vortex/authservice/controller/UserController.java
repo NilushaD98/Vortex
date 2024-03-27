@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/vortexcoreservice/api/v1/user/")
 @RequiredArgsConstructor
@@ -38,7 +40,7 @@ public class UserController {
                 new StandardResponse(200,"User By Email : ",user),HttpStatus.OK
         );
     }
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority()")
     @GetMapping("get_user_by_id")
     public ResponseEntity<StandardResponse> getUserById(@RequestParam("user_id") String user_id){
         UserByEmailDTO userByEmailDTO = userService.getUserById(user_id);
@@ -69,5 +71,9 @@ public class UserController {
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"OTP Checked Status : ", otpCheckStatus),HttpStatus.OK
         );
+    }
+    @PostMapping("get_followers_data_list")
+    public List<FollowerDetailsDTO> getFollowersDataList(@RequestBody List<String> followingUserEmailList){
+        return userService.getFollowersDataList(followingUserEmailList);
     }
 }

@@ -8,7 +8,4 @@ import java.util.Optional;
 
 @Repository
 public interface SellerDetailsRepository extends MongoRepository<SellerDetails,String> {
-
-
-    Optional<SellerDetails> findByEmailEquals(String email);
 }

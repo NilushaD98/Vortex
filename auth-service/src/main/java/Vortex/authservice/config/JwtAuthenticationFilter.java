@@ -31,7 +31,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         request.getServletPath().equals("/vortexcoreservice/api/v1/user/find_account_by_email") ||
                         request.getServletPath().equals("/vortexcoreservice/api/v1/send_otp_for_password_change") ||
                         request.getServletPath().equals("/vortexcoreservice/api/v1/check_otp_for_password_change") ||
-                        request.getServletPath().equals("/vortexcoreservice/api/v1/password_change_forget_password")
+                        request.getServletPath().equals("/vortexcoreservice/api/v1/password_change_forget_password") ||
+                        request.getServletPath().equals("/vortexcoreservice/api/v1/user/get_followers_data_list")
 
         ){
             filterChain.doFilter(request,response);

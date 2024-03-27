@@ -5,6 +5,8 @@ import Vortex.authservice.dto.response.AuthResponseDTO;
 import Vortex.authservice.dto.response.OtpResponse;
 import Vortex.authservice.dto.response.UserByEmailDTO;
 
+import java.util.List;
+
 public interface UserService {
     AuthResponseDTO userSignUp(UserSignUpDTO userSignUpDTO);
 
@@ -19,4 +21,6 @@ public interface UserService {
     boolean checkOTP(CheckOTPDTO checkOTPDTO);
 
     AuthResponseDTO sellerSignUp(SellerSignUpDTO sellerSignUpDTO);
+
+    List<FollowerDetailsDTO> getFollowersDataList(List<String> followingUserEmailList);
 }

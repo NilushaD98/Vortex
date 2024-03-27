@@ -7,20 +7,17 @@ import Vortex.authservice.dto.response.UserByEmailDTO;
 import Vortex.authservice.entity.OTP;
 import Vortex.authservice.entity.SellerDetails;
 import Vortex.authservice.entity.User;
-import Vortex.authservice.entity.UserPublicDetails;
 import Vortex.authservice.enums.Roles;
 import Vortex.authservice.exceptions.EmailSenderErrorResponse;
 import Vortex.authservice.exceptions.UserAlreadyReportedException;
 import Vortex.authservice.exceptions.UserNotFoundException;
 import Vortex.authservice.repository.OTPRepository;
 import Vortex.authservice.repository.SellerDetailsRepository;
-import Vortex.authservice.repository.UserPublicDetailsRepository;
 import Vortex.authservice.repository.UserRepository;
 import Vortex.authservice.service.AuthService;
 import Vortex.authservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -42,7 +39,6 @@ public class UserServiceIMPL implements UserService{
     private final UserRepository userRepository;
     private  final PasswordEncoder passwordEncoder;
     private final AuthService authService;
-    private final UserPublicDetailsRepository userPublicDetailsRepository;
     private final JavaMailSender mailSender;
     private final OTPRepository otpRepository;
     private final SellerDetailsRepository sellerDetailsRepository;
@@ -83,12 +79,15 @@ public class UserServiceIMPL implements UserService{
     }
     @Override
     public String updateUserDetails(UpdateUserPublicDetailsDTO updateUserPublicDetailsDTO) {
-        UserPublicDetails userPublicDetails = new UserPublicDetails(
-                updateUserPublicDetailsDTO.getUserId(),
-                updateUserPublicDetailsDTO.getProfilePhotoURL(),
-                updateUserPublicDetailsDTO.getBio()
-        );
-        return userPublicDetailsRepository.save(userPublicDetails)+" updated";
+        Optional<User> byEmailEquals = userRepository.findByEmailEquals(updateUserPublicDetailsDTO.getEmail());
+        if(byEmailEquals.isPresent()){
+            User user = byEmailEquals.get();
+            user.setBio(updateUserPublicDetailsDTO.getBio());
+            user.setProfilePhotoURL(updateUserPublicDetailsDTO.getProfilePhotoURL());
+            return userRepository.save(user).getFirstName()+" updated";
+        }else {
+            throw new UserNotFoundException();
+        }
     }
 
     @Override
@@ -96,9 +95,8 @@ public class UserServiceIMPL implements UserService{
         Optional<User> byEmailEquals = userRepository.findByEmailEquals(email);
         if(byEmailEquals.isPresent()){
             User user = byEmailEquals.get();
-            UserPublicDetails userPublicDetails = userPublicDetailsRepository.findByUserId(user.getUserid());
             return new UserByEmailDTO(
-                    userPublicDetails.getProfilePhotoURL(),
+                    user.getProfilePhotoURL(),
                     user.getFirstName(),
                     user.getLastName(),
                     user.getEmail(),
@@ -108,7 +106,6 @@ public class UserServiceIMPL implements UserService{
             throw new UserNotFoundException();
         }
     }
-
     @Override
     public OtpResponse sendOtpToEmail(String email) {
         int otp = generateRandomOTP();
@@ -163,6 +160,15 @@ public class UserServiceIMPL implements UserService{
             return authService.authenticate(new DefaultAuthenticationDTO(sellerSignUpDTO.getEmail(),sellerSignUpDTO.getPassword()));
         }
     }
+
+    @Override
+    public List<FollowerDetailsDTO> getFollowersDataList(List<String> followingUserEmailList) {
+        List<User> userList = userRepository.findByEmailIn(followingUserEmailList);
+        System.out.println(userList.size());
+        System.out.println(userList.toString());
+        return null;
+    }
+
     public static int generateRandomOTP() {
         int min = 100000;
         int max = 999999;

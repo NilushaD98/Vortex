@@ -28,7 +28,8 @@ public class SecurityConfiguration {
             "/vortexcoreservice/api/v1/user/**",
             "/vortexcoreservice/api/v1/**",
             "/vortexcoreservice/api/v1/user/find_account_by_email",
-            "/vortexcoreservice/api/v1/user/send_otp"
+            "/vortexcoreservice/api/v1/user/send_otp",
+            "/vortexcoreservice/api/v1/user/get_followers_data_list"
     };
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {

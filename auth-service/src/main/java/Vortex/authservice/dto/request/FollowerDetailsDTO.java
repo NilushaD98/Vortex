@@ -7,10 +7,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class UpdateUserPublicDetailsDTO {
+public class FollowerDetailsDTO {
 
-    private String userId;
-    private String email;
+    private String userEmail;
     private String profilePhotoURL;
-    private String bio;
+    private String Name;
 }
