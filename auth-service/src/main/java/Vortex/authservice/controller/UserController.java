@@ -72,8 +72,12 @@ public class UserController {
                 new StandardResponse(200,"OTP Checked Status : ", otpCheckStatus),HttpStatus.OK
         );
     }
+    @PostMapping("get_following_data_list")
+    public List<FollowerDetailsDTO> getFollowingDataList(@RequestBody List<String> followingUserEmailList){
+        return userService.getFollowingDataList(followingUserEmailList);
+    }
     @PostMapping("get_followers_data_list")
-    public List<FollowerDetailsDTO> getFollowersDataList(@RequestBody List<String> followingUserEmailList){
-        return userService.getFollowersDataList(followingUserEmailList);
+    public List<FollowerDetailsDTO> getFollowersDataList(@RequestBody List<String> followersUserEmailList){
+        return userService.getFollowersDataList(followersUserEmailList);
     }
 }

@@ -1,7 +1,7 @@
 package Vortex.userservice.service;
 
 import Vortex.userservice.dto.request.FollowRequestDTO;
-import Vortex.userservice.dto.response.FollowingListDTO;
+import Vortex.userservice.dto.request.FollowerDetailsDTO;
 
 import java.util.List;
 
@@ -10,5 +10,7 @@ public interface UserService {
 
     String unfollow(FollowRequestDTO followRequestDTO);
 
-    List<FollowingListDTO> getFollowingList(String userEmail);
+    List<FollowerDetailsDTO> getFollowingList(String userEmail);
+
+    List<FollowerDetailsDTO> getFollowersList(String userEmail);
 }

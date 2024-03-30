@@ -1,9 +1,9 @@
 package Vortex.userservice.service.IMPL;
 
+import Vortex.userservice.collection.Followers;
 import Vortex.userservice.collection.Following;
 import Vortex.userservice.dto.request.FollowRequestDTO;
 import Vortex.userservice.dto.request.FollowerDetailsDTO;
-import Vortex.userservice.dto.response.FollowingListDTO;
 import Vortex.userservice.feign.AuthServiceProxy;
 import Vortex.userservice.repository.FollowersRepository;
 import Vortex.userservice.repository.FollowingRepository;
@@ -85,10 +85,25 @@ public class UserServiceIMPL implements UserService {
         }
     }
     @Override
-    public List<FollowingListDTO> getFollowingList(String userEmail) {
+    public List<FollowerDetailsDTO> getFollowingList(String userEmail) {
         Following byUserEmailEquals = followingRepository.findByUserEmailEquals(userEmail);
         List<String> followingUserEmailList = byUserEmailEquals.getFollowingUserEmailList();
-        List<FollowerDetailsDTO> followerDetailsDTOList = authServiceProxy.getFollowersDataList(followingUserEmailList);
-        return null;
+        if(followingUserEmailList.isEmpty()){
+            return null;
+        }else {
+            List<FollowerDetailsDTO> followerDetailsDTOList = authServiceProxy.getFollowingDataList(followingUserEmailList);
+            return followerDetailsDTOList;
+        }
+    }
+    @Override
+    public List<FollowerDetailsDTO> getFollowersList(String userEmail) {
+        Followers byUserEmailEquals = followersRepository.findByUserEmailEquals(userEmail);
+        List<String> followersEmailList = byUserEmailEquals.getFollowersEmailList();
+        if(followersEmailList.isEmpty()){
+            return null;
+        }else {
+            List<FollowerDetailsDTO> followerDetailsDTOList = authServiceProxy.getFollowersDataList(followersEmailList);
+            return followerDetailsDTOList;
+        }
     }
 }

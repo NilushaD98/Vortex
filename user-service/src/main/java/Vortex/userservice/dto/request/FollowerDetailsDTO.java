@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @Data
 public class FollowerDetailsDTO {
 
-    private String userEmail;
+    private String firstName;
+    private String lastName;
+    private String email;
     private String profilePhotoURL;
-    private String Name;
 }

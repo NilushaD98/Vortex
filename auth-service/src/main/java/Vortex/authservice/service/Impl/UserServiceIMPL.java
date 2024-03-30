@@ -16,6 +16,7 @@ import Vortex.authservice.repository.SellerDetailsRepository;
 import Vortex.authservice.repository.UserRepository;
 import Vortex.authservice.service.AuthService;
 import Vortex.authservice.service.UserService;
+import Vortex.authservice.util.mappers.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
@@ -42,6 +43,7 @@ public class UserServiceIMPL implements UserService{
     private final JavaMailSender mailSender;
     private final OTPRepository otpRepository;
     private final SellerDetailsRepository sellerDetailsRepository;
+    private final UserMapper userMapper;
 
 
     @Override
@@ -162,11 +164,13 @@ public class UserServiceIMPL implements UserService{
     }
 
     @Override
-    public List<FollowerDetailsDTO> getFollowersDataList(List<String> followingUserEmailList) {
-        List<User> userList = userRepository.findByEmailIn(followingUserEmailList);
-        System.out.println(userList.size());
-        System.out.println(userList.toString());
-        return null;
+    public List<FollowerDetailsDTO> getFollowingDataList(List<String> followingUserEmailList) {
+        return userMapper.EntityTOFollowerDetailsDTO(userRepository.findByEmailIn(followingUserEmailList));
+    }
+
+    @Override
+    public List<FollowerDetailsDTO> getFollowersDataList(List<String> followersUserEmailList) {
+        return userMapper.EntityTOFollowerDetailsDTO(userRepository.findByEmailIn(followersUserEmailList));
     }
 
     public static int generateRandomOTP() {

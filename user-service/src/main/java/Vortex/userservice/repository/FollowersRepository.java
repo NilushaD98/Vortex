@@ -8,5 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface FollowersRepository extends MongoRepository<Followers,String> {
 
 
+    Followers findByUserEmailEquals(String userEmail);
 }
 

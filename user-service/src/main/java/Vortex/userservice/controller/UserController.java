@@ -32,5 +32,11 @@ public class UserController {
                 new StandardResponse(200,"Following List",userService.getFollowingList(userEmail)),HttpStatus.OK
         );
     }
+    @GetMapping("get_followers_list")
+    public ResponseEntity<StandardResponse> getFollowersList(@RequestParam("userEmail")String userEmail){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Follower List",userService.getFollowersList(userEmail)),HttpStatus.OK
+        );
+    }
 
 }

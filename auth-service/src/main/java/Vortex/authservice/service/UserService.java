@@ -22,5 +22,7 @@ public interface UserService {
 
     AuthResponseDTO sellerSignUp(SellerSignUpDTO sellerSignUpDTO);
 
-    List<FollowerDetailsDTO> getFollowersDataList(List<String> followingUserEmailList);
+    List<FollowerDetailsDTO> getFollowingDataList(List<String> followingUserEmailList);
+
+    List<FollowerDetailsDTO> getFollowersDataList(List<String> followersUserEmailList);
 }
