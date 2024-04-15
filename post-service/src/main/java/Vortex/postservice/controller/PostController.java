@@ -1,5 +1,6 @@
 package Vortex.postservice.controller;
 
+import Vortex.postservice.dto.request.AddCommentDTO;
 import Vortex.postservice.dto.request.PostAddDTO;
 import Vortex.postservice.dto.request.PostLikeDTO;
 import Vortex.postservice.dto.request.SharePostDTO;
@@ -65,6 +66,30 @@ public class PostController {
     ){
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"All posts ",postService.getAllPosts(userEmail,postPageIndex)),HttpStatus.OK
+        );
+    }
+    @PostMapping("add_comment")
+    public ResponseEntity<StandardResponse> addComment(@RequestBody AddCommentDTO addCommentDTO){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Comment Added Status ",postService.addComment(addCommentDTO)),HttpStatus.OK
+        );
+    }
+    @GetMapping("get_all_comment_by_postid")
+    public ResponseEntity<StandardResponse> getAllCommentsByPostID(
+            @RequestParam("postID")String postID,
+            @RequestParam("pageIndex")int pageIndex
+    ){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"All Comments",postService.getAllComments(postID,pageIndex)),HttpStatus.OK
+        );
+    }
+    @DeleteMapping("delete_post")
+    public ResponseEntity<StandardResponse> deletePost(
+            @RequestParam("postID")String postID,
+            @RequestParam("authorEmail")String authorEmail
+    ){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Post Delete Status :",postService.deletePost(postID,authorEmail)),HttpStatus.OK
         );
     }
 

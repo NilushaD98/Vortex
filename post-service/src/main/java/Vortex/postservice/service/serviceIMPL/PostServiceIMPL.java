@@ -1,20 +1,17 @@
 package Vortex.postservice.service.serviceIMPL;
 
-import Vortex.postservice.collection.Like;
-import Vortex.postservice.collection.LikedLog;
-import Vortex.postservice.collection.Post;
-import Vortex.postservice.collection.SharedPost;
+import Vortex.postservice.collection.*;
+import Vortex.postservice.dto.request.AddCommentDTO;
 import Vortex.postservice.dto.request.PostAddDTO;
 import Vortex.postservice.dto.request.PostLikeDTO;
 import Vortex.postservice.dto.request.SharePostDTO;
 import Vortex.postservice.dto.response.AllPostViewDTO;
 import Vortex.postservice.dto.response.PostViewDTO;
+import Vortex.postservice.dto.response.ViewCommentDTO;
 import Vortex.postservice.exception.PostNotFoundException;
 import Vortex.postservice.feign.AuthServiceProxy;
-import Vortex.postservice.repositories.LikeRepository;
-import Vortex.postservice.repositories.LikedLogRepository;
-import Vortex.postservice.repositories.PostRepository;
-import Vortex.postservice.repositories.SharedPostRepository;
+import Vortex.postservice.feign.UserServiceProxy;
+import Vortex.postservice.repositories.*;
 import Vortex.postservice.service.PostService;
 import Vortex.postservice.util.mappers.PostMappers;
 import com.mongodb.client.MongoClient;
@@ -54,7 +51,7 @@ public class PostServiceIMPL implements PostService {
     @Autowired
     private PostMappers postMappers;
     @Autowired
-    private AuthServiceProxy authServiceProxy;
+    private CommentRepository commentRepository;
     @Autowired
     private SharedPostRepository sharedPostRepository;
     private final MongoDatabase mongoDatabase;
@@ -212,6 +209,40 @@ public class PostServiceIMPL implements PostService {
             throw new PostNotFoundException();
         }
     }
+
+    @Override
+    public Boolean deletePost(String postID, String authorEmail) {
+        if(postRepository.findById(postID).isPresent()){
+            postRepository.deleteById(postID);
+            likeRepository.findLikeByPostIdEquals(postID);
+
+        }else{
+            throw new PostNotFoundException();
+        }
+    }
+
+    @Override
+    public Boolean addComment(AddCommentDTO addCommentDTO) {
+        if(postRepository.findById(addCommentDTO.getPostID()).isPresent()){
+            if(commentRepository.findByPostIdEquals(addCommentDTO.getPostID()).isPresent()){
+
+            }else {
+                List<Comment> commentList = new ArrayList<>();
+                Comment comment = new Comment(addCommentDTO.getCommentUserEmail(),addCommentDTO.getComment());
+                commentList.add(comment);
+                Comments comments = new Comments(addCommentDTO.getPostID(), commentList);
+                commentRepository.save(comments);
+            }
+        }else {
+            throw new PostNotFoundException();
+        }
+    }
+
+    @Override
+    public List<ViewCommentDTO> getAllComments(String postID, int pageIndex) {
+        return null;
+    }
+
     private Boolean likeUnlikeCommon(PostLikeDTO postLikeDTO,String likeOrUnlikeStatus){
         try {
             MongoCollection<Document> likeCollection = mongoDatabase.getCollection("like");
