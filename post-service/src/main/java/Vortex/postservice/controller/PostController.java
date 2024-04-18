@@ -90,7 +90,7 @@ public class PostController {
                 new StandardResponse(200,"All Comments",postService.getAllComments(postID,pageIndex)),HttpStatus.OK
         );
     }
-    @GetMapping("get_all_like_list_by_postid")
+    @GetMapping("get_all_like_list_by_postID")
     public ResponseEntity<StandardResponse> getAllLikeList(
             @RequestParam("postID")String postID,
             @RequestParam("pageIndex")int pageIndex

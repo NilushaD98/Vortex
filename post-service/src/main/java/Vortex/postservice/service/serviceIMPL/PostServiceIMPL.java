@@ -1,11 +1,9 @@
 package Vortex.postservice.service.serviceIMPL;
 
 import Vortex.postservice.collection.*;
-import Vortex.postservice.dto.request.AddCommentDTO;
-import Vortex.postservice.dto.request.PostAddDTO;
-import Vortex.postservice.dto.request.PostLikeDTO;
-import Vortex.postservice.dto.request.SharePostDTO;
+import Vortex.postservice.dto.request.*;
 import Vortex.postservice.dto.response.AllPostViewDTO;
+import Vortex.postservice.dto.response.LikedUserViewDTO;
 import Vortex.postservice.dto.response.PostViewDTO;
 import Vortex.postservice.dto.response.ViewCommentDTO;
 import Vortex.postservice.exception.CommentNotFoundException;
@@ -56,6 +54,8 @@ public class PostServiceIMPL implements PostService {
     private CommentRepository commentRepository;
     @Autowired
     private SharedPostRepository sharedPostRepository;
+    @Autowired
+    private AuthServiceProxy authServiceProxy;
     private final MongoDatabase mongoDatabase;
     private final MongoDatabase userDataBase;
     private final MongoDatabase vortexDataBase;
@@ -268,8 +268,28 @@ public class PostServiceIMPL implements PostService {
     }
     @Override
     public List<ViewCommentDTO> getAllComments(String postID, int pageIndex) {
-        return null;
+        Optional<Comments> byPostIdEquals = commentRepository.findByPostIdEquals(postID);
+        if(byPostIdEquals.isPresent()){
+            Comments comments = byPostIdEquals.get();
+            List<Comment> commentList = comments.getCommentList();
+            List<ViewCommentDTO> viewCommentDTOS = new ArrayList<>();
+        }else  {
+            throw new PostNotFoundException();
+        }
     }
+
+    @Override
+    public List<UserByEmailDTO> getAllLikelist(String postID, int pageIndex) {
+        Optional<Post> byId  = postRepository.findById(postID);
+        if(byId.isPresent()){
+            PageRequest of = PageRequest.of(pageIndex, 100);
+            Optional<Like> likeByPostIdEquals = likeRepository.findLikeByPostIdEquals(postID);
+            return authServiceProxy.getFollowingDataList(likeByPostIdEquals.get().getLikedEmailList());
+        }else {
+            throw new PostNotFoundException();
+        }
+    }
+
     private Boolean likeUnlikeCommon(PostLikeDTO postLikeDTO,String likeOrUnlikeStatus){
         try {
             MongoCollection<Document> likeCollection = mongoDatabase.getCollection("like");

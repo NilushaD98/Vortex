@@ -1,10 +1,8 @@
 package Vortex.postservice.service;
 
-import Vortex.postservice.dto.request.AddCommentDTO;
-import Vortex.postservice.dto.request.PostAddDTO;
-import Vortex.postservice.dto.request.PostLikeDTO;
-import Vortex.postservice.dto.request.SharePostDTO;
+import Vortex.postservice.dto.request.*;
 import Vortex.postservice.dto.response.AllPostViewDTO;
+import Vortex.postservice.dto.response.LikedUserViewDTO;
 import Vortex.postservice.dto.response.ViewCommentDTO;
 import Vortex.postservice.dto.response.PostViewDTO;
 
@@ -26,5 +24,5 @@ public interface PostService {
 
     List<ViewCommentDTO> getAllComments(String postID, int pageIndex);
 
-    Object getAllLikelist(String postID, int pageIndex);
+    List<UserByEmailDTO> getAllLikelist(String postID, int pageIndex);
 }
