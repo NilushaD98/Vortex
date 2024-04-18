@@ -22,6 +22,9 @@ public interface PostService {
     Boolean deletePost(String postID, String authorEmail);
 
     Boolean addComment(AddCommentDTO addCommentDTO);
+    Boolean deleteComment(AddCommentDTO addCommentDTO);
 
     List<ViewCommentDTO> getAllComments(String postID, int pageIndex);
+
+    Object getAllLikelist(String postID, int pageIndex);
 }

@@ -8,6 +8,7 @@ import Vortex.postservice.dto.request.SharePostDTO;
 import Vortex.postservice.dto.response.AllPostViewDTO;
 import Vortex.postservice.dto.response.PostViewDTO;
 import Vortex.postservice.dto.response.ViewCommentDTO;
+import Vortex.postservice.exception.CommentNotFoundException;
 import Vortex.postservice.exception.PostNotFoundException;
 import Vortex.postservice.feign.AuthServiceProxy;
 import Vortex.postservice.feign.UserServiceProxy;
@@ -28,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
 import org.springframework.stereotype.Service;
 
 import javax.print.Doc;
@@ -225,24 +227,49 @@ public class PostServiceIMPL implements PostService {
     public Boolean addComment(AddCommentDTO addCommentDTO) {
         if(postRepository.findById(addCommentDTO.getPostID()).isPresent()){
             if(commentRepository.findByPostIdEquals(addCommentDTO.getPostID()).isPresent()){
-
+                return addDeleteCommentCommon(addCommentDTO,"$addToSet");
             }else {
                 List<Comment> commentList = new ArrayList<>();
                 Comment comment = new Comment(addCommentDTO.getCommentUserEmail(),addCommentDTO.getComment());
                 commentList.add(comment);
                 Comments comments = new Comments(addCommentDTO.getPostID(), commentList);
                 commentRepository.save(comments);
+                return true;
             }
         }else {
             throw new PostNotFoundException();
         }
     }
+    @Override
+    public Boolean deleteComment(AddCommentDTO addCommentDTO){
+        if(commentRepository.findByPostIdEquals(addCommentDTO.getPostID()).isPresent()){
+            return addDeleteCommentCommon(addCommentDTO,"$pull");
+        }else{
+            throw new CommentNotFoundException();
+        }
+    }
+    private Boolean addDeleteCommentCommon(AddCommentDTO addCommentDTO,String addDeleteStatus){
+        try {
+            MongoCollection<Document> commentsCollection = mongoDatabase.getCollection("comments");
+            UpdateOptions updateOptions = new UpdateOptions().upsert(true);
+            Comment comment = new Comment(addCommentDTO.getCommentUserEmail(),addCommentDTO.getComment());
+            UpdateResult updateResultComment = commentsCollection.updateOne(
+                    new Document("postId",addCommentDTO.getPostID()),
+                    new Document(addDeleteStatus,new Document("commentList",comment)),
+                    updateOptions
+            );
+            log.info(updateResultComment.toString());
+            return true;
+        }catch (Exception e){
+            log.error(e.getMessage());
+            return false;
 
+        }
+    }
     @Override
     public List<ViewCommentDTO> getAllComments(String postID, int pageIndex) {
         return null;
     }
-
     private Boolean likeUnlikeCommon(PostLikeDTO postLikeDTO,String likeOrUnlikeStatus){
         try {
             MongoCollection<Document> likeCollection = mongoDatabase.getCollection("like");

@@ -7,6 +7,7 @@ import Vortex.postservice.dto.request.SharePostDTO;
 import Vortex.postservice.service.PostService;
 import Vortex.postservice.util.StandardResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -74,6 +75,12 @@ public class PostController {
                 new StandardResponse(200,"Comment Added Status ",postService.addComment(addCommentDTO)),HttpStatus.OK
         );
     }
+    @DeleteMapping("delete_comment")
+    public ResponseEntity<StandardResponse> deleteComment(@RequestBody AddCommentDTO addCommentDTO){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Comment Delete Status ",postService.deleteComment(addCommentDTO)),HttpStatus.OK
+        );
+    }
     @GetMapping("get_all_comment_by_postid")
     public ResponseEntity<StandardResponse> getAllCommentsByPostID(
             @RequestParam("postID")String postID,
@@ -81,6 +88,15 @@ public class PostController {
     ){
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"All Comments",postService.getAllComments(postID,pageIndex)),HttpStatus.OK
+        );
+    }
+    @GetMapping("get_all_like_list_by_postid")
+    public ResponseEntity<StandardResponse> getAllLikeList(
+            @RequestParam("postID")String postID,
+            @RequestParam("pageIndex")int pageIndex
+    ){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"All Liked User List",postService.getAllLikelist(postID,pageIndex)),HttpStatus.OK
         );
     }
     @DeleteMapping("delete_post")
