@@ -23,12 +23,14 @@ public class UserController {
         );
     }
     @PatchMapping("unfollow")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> unfollow(@RequestBody FollowRequestDTO followRequestDTO){
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"User Unfollow Status : ",userService.unfollow(followRequestDTO)),HttpStatus.OK
         );
     }
     @GetMapping("get_following_list")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> getFollowingList(
             @RequestParam("userEmail")String userEmail
     ){
@@ -37,6 +39,7 @@ public class UserController {
         );
     }
     @GetMapping("get_followers_list")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> getFollowersList(
             @RequestParam("userEmail")String userEmail
 
@@ -46,6 +49,7 @@ public class UserController {
         );
     }
     @GetMapping("get_following_and_followers_user_count")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> getFollowingAndFollowersUsersCount(@RequestParam("email")String email){
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"FollowingDTO and Followers List Sizes : ", userService.getFollowersAndFollowingCount(email)),HttpStatus.OK

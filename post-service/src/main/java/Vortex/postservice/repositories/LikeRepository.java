@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface LikeRepository extends MongoRepository<Like,String> {
     Optional<Like> findLikeByPostIdEquals(String postID);
+
+    void deleteByPostIdEquals(String postID);
 }

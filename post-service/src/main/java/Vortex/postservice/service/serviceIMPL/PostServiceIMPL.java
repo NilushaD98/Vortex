@@ -2,17 +2,16 @@ package Vortex.postservice.service.serviceIMPL;
 
 import Vortex.postservice.collection.*;
 import Vortex.postservice.dto.request.*;
-import Vortex.postservice.dto.response.AllPostViewDTO;
-import Vortex.postservice.dto.response.LikedUserViewDTO;
-import Vortex.postservice.dto.response.PostViewDTO;
-import Vortex.postservice.dto.response.ViewCommentDTO;
+import Vortex.postservice.dto.response.*;
 import Vortex.postservice.exception.CommentNotFoundException;
 import Vortex.postservice.exception.PostNotFoundException;
 import Vortex.postservice.feign.AuthServiceProxy;
 import Vortex.postservice.feign.UserServiceProxy;
 import Vortex.postservice.repositories.*;
 import Vortex.postservice.service.PostService;
+import Vortex.postservice.util.StandardResponse;
 import Vortex.postservice.util.mappers.PostMappers;
+import Vortex.postservice.util.mappers.ReportedPostMapper;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -28,6 +27,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.print.Doc;
@@ -56,6 +56,10 @@ public class PostServiceIMPL implements PostService {
     private SharedPostRepository sharedPostRepository;
     @Autowired
     private AuthServiceProxy authServiceProxy;
+    @Autowired
+    private ReportedPostRepository reportedPostRepository;
+    @Autowired
+    private ReportedPostMapper reportedPostMapper;
     private final MongoDatabase mongoDatabase;
     private final MongoDatabase userDataBase;
     private final MongoDatabase vortexDataBase;
@@ -214,10 +218,12 @@ public class PostServiceIMPL implements PostService {
 
     @Override
     public Boolean deletePost(String postID, String authorEmail) {
-        if(postRepository.findById(postID).isPresent()){
+        Optional<Post> byId = postRepository.findById(postID);
+        if(byId.isPresent() && byId.get().getPostAuthorEmail().equals(authorEmail)){
             postRepository.deleteById(postID);
-            likeRepository.findLikeByPostIdEquals(postID);
-
+            likeRepository.deleteByPostIdEquals(postID);
+            commentRepository.deleteByPostIdEquals(postID);
+            return true;
         }else{
             throw new PostNotFoundException();
         }
@@ -259,6 +265,13 @@ public class PostServiceIMPL implements PostService {
                     updateOptions
             );
             log.info(updateResultComment.toString());
+            Optional<Post> byId = postRepository.findById(addCommentDTO.getPostID());
+            if(addDeleteStatus.equals("$pull")){
+                byId.get().setLikeCount(byId.get().getLikeCount()-1);
+            }else {
+                byId.get().setLikeCount(byId.get().getLikeCount()+1);
+            }
+            postRepository.save(byId.get());
             return true;
         }catch (Exception e){
             log.error(e.getMessage());
@@ -273,6 +286,16 @@ public class PostServiceIMPL implements PostService {
             Comments comments = byPostIdEquals.get();
             List<Comment> commentList = comments.getCommentList();
             List<ViewCommentDTO> viewCommentDTOS = new ArrayList<>();
+            ViewCommentDTO viewCommentDTO = new ViewCommentDTO();
+            for (Comment comment:commentList) {
+                UserByEmailDTO user = (UserByEmailDTO)authServiceProxy.findAccountById(comment.getCommentedUserEmail()).getBody().getData();
+                viewCommentDTO.setCommentedUserEmail(user.getEmail());
+                viewCommentDTO.setCommentedUserName(user.getFirstName()+" "+user.getLastName());
+                viewCommentDTO.setCommentedUserProfilePictureURL(user.getProfilePhotoURL());
+                viewCommentDTO.setComment(comment.getComment());
+                viewCommentDTOS.add(viewCommentDTO);
+            }
+            return viewCommentDTOS;
         }else  {
             throw new PostNotFoundException();
         }
@@ -282,12 +305,43 @@ public class PostServiceIMPL implements PostService {
     public List<UserByEmailDTO> getAllLikelist(String postID, int pageIndex) {
         Optional<Post> byId  = postRepository.findById(postID);
         if(byId.isPresent()){
-            PageRequest of = PageRequest.of(pageIndex, 100);
             Optional<Like> likeByPostIdEquals = likeRepository.findLikeByPostIdEquals(postID);
             return authServiceProxy.getFollowingDataList(likeByPostIdEquals.get().getLikedEmailList());
         }else {
             throw new PostNotFoundException();
         }
+    }
+    @Override
+    public String reportPost(PostReportDTO postReportDTO) {
+        reportedPostRepository.save(reportedPostMapper.DTOToEntity(postReportDTO));
+        return "success";
+    }
+
+    @Override
+    public List<ReportedPostDTO> getAllReportedPosts() {
+        List<ReportedPostDTO> reportedPostDTOList = new ArrayList<>();
+        List<ReportedPost> allReportedPosts = reportedPostRepository.findAll();
+        for (ReportedPost reportedPost:allReportedPosts){
+            Optional<Post> byId = postRepository.findById(reportedPost.getPostID());
+            ReportedPostDTO reportedPostDTO = new ReportedPostDTO();
+            reportedPostDTO.setPostID(byId.get().getPostID());
+            reportedPostDTO.setPostAuthorEmail(byId.get().getPostAuthorEmail());
+            reportedPostDTO.setMediaLink(byId.get().getMediaLink());
+            reportedPostDTO.setCaption(byId.get().getCaption());
+            reportedPostDTO.setPostedTime(byId.get().getPostedTime());
+            reportedPostDTO.setLikeCount(byId.get().getLikeCount());
+            reportedPostDTO.setCommentCount(byId.get().getCommentCount());
+            reportedPostDTO.setReportedUserEmail(reportedPostDTO.getReportedUserEmail());
+            reportedPostDTO.setReportedReason(reportedPostDTO.getReportedReason());
+            UserByEmailDTO postAuthor = (UserByEmailDTO)authServiceProxy.findAccountById(byId.get().getPostAuthorEmail()).getBody().getData();
+            UserByEmailDTO reportedUser = (UserByEmailDTO)authServiceProxy.findAccountById(reportedPost.getReportedUserEmail()).getBody().getData();
+            reportedPostDTO.setPostAuthorName(postAuthor.getFirstName()+" "+postAuthor.getLastName());
+            reportedPostDTO.setPostAuthorProfilePhotoURL(postAuthor.getProfilePhotoURL());
+            reportedPostDTO.setReportedUserName(reportedUser.getFirstName()+" "+reportedUser.getLastName());
+            reportedPostDTO.setReportedUserProfilePhotoURL(reportedUser.getProfilePhotoURL());
+            reportedPostDTOList.add(reportedPostDTO);
+        }
+        return reportedPostDTOList;
     }
 
     private Boolean likeUnlikeCommon(PostLikeDTO postLikeDTO,String likeOrUnlikeStatus){

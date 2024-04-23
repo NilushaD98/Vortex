@@ -50,12 +50,9 @@ public class UserServiceIMPL implements UserService{
     private MongoOperations mongoOperations;
     @Autowired
     private UserMapper userMapper;
-    @Value("${spring.data.mongodb.uri}")
-    private String mongoClientURL;
-
 
     public  UserServiceIMPL() {
-        MongoClient mongoClient = MongoClients.create(mongoClientURL);
+        MongoClient mongoClient = MongoClients.create("mongodb+srv://root:1234@cluster0.ucithrp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
         mongoDatabase = mongoClient.getDatabase("user");
     }
 

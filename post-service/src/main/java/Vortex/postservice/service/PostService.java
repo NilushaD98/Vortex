@@ -1,10 +1,7 @@
 package Vortex.postservice.service;
 
 import Vortex.postservice.dto.request.*;
-import Vortex.postservice.dto.response.AllPostViewDTO;
-import Vortex.postservice.dto.response.LikedUserViewDTO;
-import Vortex.postservice.dto.response.ViewCommentDTO;
-import Vortex.postservice.dto.response.PostViewDTO;
+import Vortex.postservice.dto.response.*;
 
 import java.util.List;
 
@@ -25,4 +22,8 @@ public interface PostService {
     List<ViewCommentDTO> getAllComments(String postID, int pageIndex);
 
     List<UserByEmailDTO> getAllLikelist(String postID, int pageIndex);
+
+    String reportPost(PostReportDTO postReportDTO);
+
+    List<ReportedPostDTO> getAllReportedPosts();
 }

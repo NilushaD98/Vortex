@@ -77,10 +77,12 @@ public class UserController {
                 new StandardResponse(200,"OTP Checked Status : ", otpCheckStatus),HttpStatus.OK
         );
     }
+    //for user service and post service
     @PostMapping("get_following_data_list")
     public List<FollowerDetailsDTO> getFollowingDataList(@RequestBody List<String> followingUserEmailList){
         return userService.getFollowingDataList(followingUserEmailList);
     }
+    //for user service and post service
     @PostMapping("get_followers_data_list")
     public List<FollowerDetailsDTO> getFollowersDataList(@RequestBody List<String> followersUserEmailList){
         return userService.getFollowersDataList(followersUserEmailList);
@@ -93,12 +95,14 @@ public class UserController {
         );
     }
     @PutMapping("update_user_profile")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> updateUser(@RequestBody UserDTO userDTO){
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"User Update Status ",userService.userUpdate(userDTO)),HttpStatus.OK
         );
     }
-    @GetMapping("view_another_user's_profile")
+    @GetMapping("view_another_user_profile")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> viewAnotherUser(
             @RequestParam("viewUserEmail") String viewUserEmail,
             @RequestParam("userEmail") String userEmail
