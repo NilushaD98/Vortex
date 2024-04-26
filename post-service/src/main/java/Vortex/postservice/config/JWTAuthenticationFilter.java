@@ -26,16 +26,12 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        if(authHeader == null || !authHeader.equals("nvsnvs24324njnj32")){
-            response.setStatus(401);
-        }else {
             final String jwt;
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 response.setStatus(401);
                 filterChain.doFilter(request, response);
             }
             jwt = authHeader.substring(7);
-
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 if (!jwtService.isTokenExpired(jwt)) {
                     log.error(jwt);
@@ -52,6 +48,5 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
             filterChain.doFilter(request,response);
-        }
     }
 }

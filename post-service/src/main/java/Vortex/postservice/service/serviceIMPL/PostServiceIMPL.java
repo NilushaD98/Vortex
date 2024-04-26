@@ -28,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.print.Doc;
@@ -42,6 +43,8 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class PostServiceIMPL implements PostService {
 
+    @Autowired
+    private KafkaTemplate<String,PostLikeDTO> kafkaTemplate;
     @Autowired
     private PostRepository postRepository;
     @Autowired
@@ -96,6 +99,7 @@ public class PostServiceIMPL implements PostService {
             Optional<Post> byId = postRepository.findById(postLikeDTO.getPostID());
             byId.get().setLikeCount(byId.get().getLikeCount()+1);
             postRepository.save(byId.get());
+            kafkaTemplate.send("like-topic",postLikeDTO);
             return "success";
         }catch (Exception e){
             log.error(e.getMessage());
