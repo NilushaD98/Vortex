@@ -80,11 +80,18 @@ public class UserServiceIMPL implements UserService{
     public UserByEmailDTO getUserById(String userId) {
         Optional<User> byId = userRepository.findById(userId);
         if (byId.isPresent()){
-
+            User user = byId.get();
+            UserByEmailDTO userEmailDTO = new UserByEmailDTO(
+                    user.getProfilePhotoURL(),
+                    user.getFirstName(),
+                    user.getLastName(),
+                    user.getEmail(),
+                    user.getCountry()
+            );
+            return userEmailDTO;
         }else {
             throw new UserNotFoundException();
         }
-        return null;
     }
     @Override
     public String updateUserDetails(UpdateUserPublicDetailsDTO updateUserPublicDetailsDTO) {
