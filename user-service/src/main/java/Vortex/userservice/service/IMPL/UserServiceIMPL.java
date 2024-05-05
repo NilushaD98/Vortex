@@ -123,7 +123,6 @@ public class UserServiceIMPL implements UserService{
         Document filter = new Document("postAuthorEmail",email);
         FollowersFollowingAndPostCountDTO followersFollowingAndPostCountDTO = new FollowersFollowingAndPostCountDTO();
         followersFollowingAndPostCountDTO.setPostCount((int)postCollection.countDocuments(filter));
-        log.info(result.toString());
         if(result == null){
             followersFollowingAndPostCountDTO.setFollowingCount(0);
         }else {
