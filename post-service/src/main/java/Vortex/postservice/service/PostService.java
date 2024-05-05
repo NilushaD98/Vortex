@@ -17,7 +17,7 @@ public interface PostService {
     Boolean deletePost(String postID, String authorEmail);
 
     Boolean addComment(AddCommentDTO addCommentDTO);
-    Boolean deleteComment(AddCommentDTO addCommentDTO);
+    Boolean deleteComment(DeleteCommentDTO deleteCommentDTO);
 
     List<ViewCommentDTO> getAllComments(String postID, int pageIndex);
 

@@ -227,6 +227,20 @@ public class UserServiceIMPL implements UserService{
             throw new UserNotFoundException();
         }
     }
+
+    @Override
+    public Boolean updateDeliveryDetails(AddDeliverDetailsDTO addDeliverDetailsDTO) {
+        Optional<User> byEmailEquals = userRepository.findByEmailEquals(addDeliverDetailsDTO.getEmail());
+        if(byEmailEquals.isPresent()){
+            byEmailEquals.get().setDeliveryAddress(addDeliverDetailsDTO.getAddress());
+            byEmailEquals.get().setNic(addDeliverDetailsDTO.getNic());
+            userRepository.save(byEmailEquals.get());
+            return true;
+        }else {
+            throw new UserNotFoundException();
+        }
+    }
+
     public static int generateRandomOTP() {
         int min = 100000;
         int max = 999999;

@@ -29,7 +29,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        if(authHeader == null || !authHeader.equals("nvsnvs24324njnj32")){
+        if(authHeader == null){
             response.setStatus(401);
         }else {
             final String jwt;

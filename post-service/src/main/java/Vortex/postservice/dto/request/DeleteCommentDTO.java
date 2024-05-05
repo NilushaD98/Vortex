@@ -1,4 +1,4 @@
-package Vortex.postservice.collection;
+package Vortex.postservice.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class Comment {
+public class DeleteCommentDTO {
 
-    private String commentedUserEmail;
-    private String comment;
+    private String commentID;
+    private  String authorEmail;
 }

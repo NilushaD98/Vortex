@@ -2,7 +2,7 @@ package Vortex.userservice.service;
 
 import Vortex.userservice.dto.request.FollowRequestDTO;
 import Vortex.userservice.dto.request.FollowerDetailsDTO;
-import Vortex.userservice.dto.response.FollowersAndFollowingCountDTO;
+import Vortex.userservice.dto.response.FollowersFollowingAndPostCountDTO;
 import Vortex.userservice.dto.response.FollowingDTO;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public interface UserService {
 
     List<FollowerDetailsDTO> getFollowersList(String userEmail);
 
-    public FollowersAndFollowingCountDTO getFollowersAndFollowingCount(String email);
+    public FollowersFollowingAndPostCountDTO getFollowersAndFollowingCount(String email);
 
     FollowingDTO getFollowingListForPostService(String email);
 }

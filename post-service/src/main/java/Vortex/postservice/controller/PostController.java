@@ -77,14 +77,14 @@ public class PostController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> addComment(@RequestBody AddCommentDTO addCommentDTO){
         return new ResponseEntity<StandardResponse>(
-                new StandardResponse(200,"Comment Added Status ",postService.addComment(addCommentDTO)),HttpStatus.OK
+                new StandardResponse(200,"ReplyComment Added Status ",postService.addComment(addCommentDTO)),HttpStatus.OK
         );
     }
     @DeleteMapping("delete_comment")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<StandardResponse> deleteComment(@RequestBody AddCommentDTO addCommentDTO){
+    public ResponseEntity<StandardResponse> deleteComment(@RequestBody DeleteCommentDTO deleteCommentDTO){
         return new ResponseEntity<StandardResponse>(
-                new StandardResponse(200,"Comment Delete Status ",postService.deleteComment(addCommentDTO)),HttpStatus.OK
+                new StandardResponse(200,"ReplyComment Delete Status ",postService.deleteComment(deleteCommentDTO)),HttpStatus.OK
         );
     }
     @GetMapping("get_all_comment_by_postid")

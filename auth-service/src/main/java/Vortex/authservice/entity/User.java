@@ -35,6 +35,8 @@ public class User implements UserDetails {
     @NonNull
     private String country;
     @NonNull
+    private String deliveryAddress;
+    private String nic;
     private String password;
     private String profilePhotoURL;
     private String bio;

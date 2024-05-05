@@ -6,10 +6,8 @@ import Vortex.postservice.dto.response.*;
 import Vortex.postservice.exception.CommentNotFoundException;
 import Vortex.postservice.exception.PostNotFoundException;
 import Vortex.postservice.feign.AuthServiceProxy;
-import Vortex.postservice.feign.UserServiceProxy;
 import Vortex.postservice.repositories.*;
 import Vortex.postservice.service.PostService;
-import Vortex.postservice.util.StandardResponse;
 import Vortex.postservice.util.mappers.PostMappers;
 import Vortex.postservice.util.mappers.ReportedPostMapper;
 import com.mongodb.client.MongoClient;
@@ -26,12 +24,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
-import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.print.Doc;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -147,7 +142,6 @@ public class PostServiceIMPL implements PostService {
             return false;
         }
     }
-
     @Override
     public List<AllPostViewDTO> getAllPosts(String userEmail, int postPageIndex) {
         try {
@@ -236,51 +230,33 @@ public class PostServiceIMPL implements PostService {
     @Override
     public Boolean addComment(AddCommentDTO addCommentDTO) {
         if(postRepository.findById(addCommentDTO.getPostID()).isPresent()){
-            if(commentRepository.findByPostIdEquals(addCommentDTO.getPostID()).isPresent()){
-                return addDeleteCommentCommon(addCommentDTO,"$addToSet");
-            }else {
-                List<Comment> commentList = new ArrayList<>();
-                Comment comment = new Comment(addCommentDTO.getCommentUserEmail(),addCommentDTO.getComment());
-                commentList.add(comment);
-                Comments comments = new Comments(addCommentDTO.getPostID(), commentList);
-                commentRepository.save(comments);
-                return true;
-            }
+            Comments comments = new Comments(
+                    addCommentDTO.getPostID(),addCommentDTO.getCommentUserEmail(),addCommentDTO.getComment()
+            );
+            commentRepository.save(comments);
+            return true;
+//            if(commentRepository.findByPostIdEquals(addCommentDTO.getPostID()).isPresent()){
+//                return addDeleteCommentCommon(addCommentDTO,"$addToSet");
+//            }else {
+//                List<ReplyComment> replyCommentList = new ArrayList<>();
+//                ReplyComment replyComment = new ReplyComment(addCommentDTO.getCommentUserEmail(),addCommentDTO.getComment());
+//                replyCommentList.add(replyComment);
+//                Comments comments = new Comments(addCommentDTO.getPostID(), replyCommentList);
+//                commentRepository.save(comments);
+//                return true;
+//            }
         }else {
             throw new PostNotFoundException();
         }
     }
     @Override
-    public Boolean deleteComment(AddCommentDTO addCommentDTO){
-        if(commentRepository.findByPostIdEquals(addCommentDTO.getPostID()).isPresent()){
-            return addDeleteCommentCommon(addCommentDTO,"$pull");
-        }else{
-            throw new CommentNotFoundException();
-        }
-    }
-    private Boolean addDeleteCommentCommon(AddCommentDTO addCommentDTO,String addDeleteStatus){
-        try {
-            MongoCollection<Document> commentsCollection = mongoDatabase.getCollection("comments");
-            UpdateOptions updateOptions = new UpdateOptions().upsert(true);
-            Comment comment = new Comment(addCommentDTO.getCommentUserEmail(),addCommentDTO.getComment());
-            UpdateResult updateResultComment = commentsCollection.updateOne(
-                    new Document("postId",addCommentDTO.getPostID()),
-                    new Document(addDeleteStatus,new Document("commentList",comment)),
-                    updateOptions
-            );
-            log.info(updateResultComment.toString());
-            Optional<Post> byId = postRepository.findById(addCommentDTO.getPostID());
-            if(addDeleteStatus.equals("$pull")){
-                byId.get().setLikeCount(byId.get().getLikeCount()-1);
-            }else {
-                byId.get().setLikeCount(byId.get().getLikeCount()+1);
-            }
-            postRepository.save(byId.get());
+    public Boolean deleteComment(DeleteCommentDTO deleteCommentDTO){
+        Optional<Comments> commentsById=commentRepository.findCommentsByCommentIDEquals(deleteCommentDTO.getCommentID());
+        if(commentsById.isPresent() && deleteCommentDTO.getAuthorEmail().equals(commentsById.get().getCommentUserEmail())){
+            commentRepository.deleteById(deleteCommentDTO.getCommentID());
             return true;
-        }catch (Exception e){
-            log.error(e.getMessage());
-            return false;
-
+        }else {
+            throw new CommentNotFoundException();
         }
     }
     @Override
@@ -288,15 +264,15 @@ public class PostServiceIMPL implements PostService {
         Optional<Comments> byPostIdEquals = commentRepository.findByPostIdEquals(postID);
         if(byPostIdEquals.isPresent()){
             Comments comments = byPostIdEquals.get();
-            List<Comment> commentList = comments.getCommentList();
+            List<ReplyComment> replyCommentList = comments.getCommentList();
             List<ViewCommentDTO> viewCommentDTOS = new ArrayList<>();
             ViewCommentDTO viewCommentDTO = new ViewCommentDTO();
-            for (Comment comment:commentList) {
-                UserByEmailDTO user = (UserByEmailDTO)authServiceProxy.findAccountById(comment.getCommentedUserEmail()).getBody().getData();
+            for (ReplyComment replyComment : replyCommentList) {
+                UserByEmailDTO user = (UserByEmailDTO)authServiceProxy.findAccountById(replyComment.getCommentedUserEmail()).getBody().getData();
                 viewCommentDTO.setCommentedUserEmail(user.getEmail());
                 viewCommentDTO.setCommentedUserName(user.getFirstName()+" "+user.getLastName());
                 viewCommentDTO.setCommentedUserProfilePictureURL(user.getProfilePhotoURL());
-                viewCommentDTO.setComment(comment.getComment());
+                viewCommentDTO.setComment(replyComment.getComment());
                 viewCommentDTOS.add(viewCommentDTO);
             }
             return viewCommentDTOS;

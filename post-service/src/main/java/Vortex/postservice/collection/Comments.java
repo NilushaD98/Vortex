@@ -15,6 +15,16 @@ import java.util.List;
 public class Comments {
 
     @Id
+    private String commentID;
     private String postId;
-    private List<Comment> commentList;
+    private String comment;
+    private String commentUserEmail;
+    private int commentLikeCount;
+    private List<ReplyComment> replyCommentList;
+
+    public Comments(String postId, String comment, String commentUserEmail) {
+        this.postId = postId;
+        this.comment = comment;
+        this.commentUserEmail = commentUserEmail;
+    }
 }

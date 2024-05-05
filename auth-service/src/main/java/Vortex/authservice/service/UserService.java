@@ -32,4 +32,6 @@ public interface UserService {
     Boolean userUpdate(UserDTO userDTO);
 
     UserDTO viewAnotherUser(String userEmail, String viewUserEmail);
+
+    Boolean updateDeliveryDetails(AddDeliverDetailsDTO addDeliverDetailsDTO);
 }

@@ -111,4 +111,14 @@ public class UserController {
                 new StandardResponse(200,"View Another User",userService.viewAnotherUser(userEmail,viewUserEmail)),HttpStatus.OK
         );
     }
+    @PutMapping("update_delivery_details")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<StandardResponse> updateDeliveryDetails(@RequestBody AddDeliverDetailsDTO addDeliverDetailsDTO){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Delivery Details Update Status: ",userService.updateDeliveryDetails(addDeliverDetailsDTO)),HttpStatus.OK
+        );
+    }
+//    @GetMapping("get_contact_info")
+//    @PreAuthorize("hasRole('USER')")
+//    public ResponseEntity<StandardResponse> getContactInfo(@RequestBody )
 }

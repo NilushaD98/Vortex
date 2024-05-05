@@ -7,8 +7,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class FollowersAndFollowingCountDTO {
+public class FollowersFollowingAndPostCountDTO {
 
     private int followingCount;
     private int followersCount;
+    private int postCount;
 }

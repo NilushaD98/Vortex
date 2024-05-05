@@ -1,5 +1,5 @@
 package Vortex.userservice.service.IMPL;
-import Vortex.userservice.dto.response.FollowersAndFollowingCountDTO;
+import Vortex.userservice.dto.response.FollowersFollowingAndPostCountDTO;
 import Vortex.userservice.dto.response.FollowingDTO;
 import Vortex.userservice.feign.AuthServiceProxy;
 import Vortex.userservice.collection.Followers;
@@ -14,22 +14,16 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,6 +40,7 @@ public class UserServiceIMPL implements UserService{
     @Autowired
     private AuthServiceProxy authServiceProxy;
     private final MongoDatabase mongoDatabase;
+    private final MongoDatabase postDatabase;
     @Autowired
     private MongoOperations mongoOperations;
     @Autowired
@@ -54,6 +49,7 @@ public class UserServiceIMPL implements UserService{
     public  UserServiceIMPL() {
         MongoClient mongoClient = MongoClients.create("mongodb+srv://root:1234@cluster0.ucithrp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
         mongoDatabase = mongoClient.getDatabase("user");
+        postDatabase = mongoClient.getDatabase("post");
     }
 
     @Override
@@ -115,7 +111,7 @@ public class UserServiceIMPL implements UserService{
     }
 
     @Override
-    public FollowersAndFollowingCountDTO getFollowersAndFollowingCount(String email) {
+    public FollowersFollowingAndPostCountDTO getFollowersAndFollowingCount(String email) {
         AggregationOperation match = Aggregation.match(Criteria.where("userEmail").is(email));
         AggregationOperation project = Aggregation.project().and("followingUserEmailList").size().as("size");
         AggregationOperation project1 = Aggregation.project().and("followersEmailList").size().as("size");
@@ -123,20 +119,22 @@ public class UserServiceIMPL implements UserService{
         Aggregation aggregation2 = Aggregation.newAggregation(match, project1);
         Document result = mongoOperations.aggregate(aggregation, "following", Document.class).getUniqueMappedResult();
         Document result1 = mongoOperations.aggregate(aggregation2, "followers", Document.class).getUniqueMappedResult();
-        FollowersAndFollowingCountDTO followersAndFollowingCountDTO = new FollowersAndFollowingCountDTO();
+        MongoCollection<Document> postCollection = postDatabase.getCollection("post");
+        Document filter = new Document("postAuthorEmail",email);
+        FollowersFollowingAndPostCountDTO followersFollowingAndPostCountDTO = new FollowersFollowingAndPostCountDTO();
+        followersFollowingAndPostCountDTO.setPostCount((int)postCollection.countDocuments(filter));
         log.info(result.toString());
         if(result == null){
-            followersAndFollowingCountDTO.setFollowingCount(0);
+            followersFollowingAndPostCountDTO.setFollowingCount(0);
         }else {
-            followersAndFollowingCountDTO.setFollowingCount(result.getInteger("size"));
+            followersFollowingAndPostCountDTO.setFollowingCount(result.getInteger("size"));
         }
         if(result1 == null){
-            followersAndFollowingCountDTO.setFollowersCount(0);
+            followersFollowingAndPostCountDTO.setFollowersCount(0);
         }else {
-            followersAndFollowingCountDTO.setFollowersCount(result1.getInteger("size"));
+            followersFollowingAndPostCountDTO.setFollowersCount(result1.getInteger("size"));
         }
-
-        return followersAndFollowingCountDTO;
+        return followersFollowingAndPostCountDTO;
     }
 
     @Override
