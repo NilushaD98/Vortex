@@ -19,4 +19,6 @@ public interface UserService {
     public FollowersFollowingAndPostCountDTO getFollowersAndFollowingCount(String email);
 
     FollowingDTO getFollowingListForPostService(String email);
+
+    Boolean initializeFollowingAndFollowersList(String userEmail);
 }

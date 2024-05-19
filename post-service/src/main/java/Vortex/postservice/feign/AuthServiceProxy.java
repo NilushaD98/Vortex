@@ -16,4 +16,7 @@ public interface AuthServiceProxy {
     public ResponseEntity<StandardResponse> findAccountById(@RequestParam("email")String email);
     @PostMapping("/vortexcoreservice/api/v1/user/get_following_data_list")
     List<UserByEmailDTO> getFollowingDataList(List<String> followingUserEmailList);
+
+    @GetMapping("/vortexcoreservice/api/v1/user/get_user")
+    public UserByEmailDTO getUser(@RequestParam("user_id") String user_id);
 }

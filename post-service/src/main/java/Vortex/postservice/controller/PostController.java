@@ -77,34 +77,32 @@ public class PostController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> addComment(@RequestBody AddCommentDTO addCommentDTO){
         return new ResponseEntity<StandardResponse>(
-                new StandardResponse(200,"ReplyComment Added Status ",postService.addComment(addCommentDTO)),HttpStatus.OK
+                new StandardResponse(200,"Comment Added Status ",postService.addComment(addCommentDTO)),HttpStatus.OK
         );
     }
     @DeleteMapping("delete_comment")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> deleteComment(@RequestBody DeleteCommentDTO deleteCommentDTO){
         return new ResponseEntity<StandardResponse>(
-                new StandardResponse(200,"ReplyComment Delete Status ",postService.deleteComment(deleteCommentDTO)),HttpStatus.OK
+                new StandardResponse(200,"Comment Delete Status ",postService.deleteComment(deleteCommentDTO)),HttpStatus.OK
         );
     }
     @GetMapping("get_all_comment_by_postid")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> getAllCommentsByPostID(
-            @RequestParam("postID")String postID,
-            @RequestParam("pageIndex")int pageIndex
+            @RequestParam("postID")String postID
     ){
         return new ResponseEntity<StandardResponse>(
-                new StandardResponse(200,"All Comments",postService.getAllComments(postID,pageIndex)),HttpStatus.OK
+                new StandardResponse(200,"All Comments",postService.getAllComments(postID)),HttpStatus.OK
         );
     }
     @GetMapping("get_all_like_list_by_postID")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> getAllLikeList(
-            @RequestParam("postID")String postID,
-            @RequestParam("pageIndex")int pageIndex
+            @RequestParam("postID")String postID
     ){
         return new ResponseEntity<StandardResponse>(
-                new StandardResponse(200,"All Liked User List",postService.getAllLikelist(postID,pageIndex)),HttpStatus.OK
+                new StandardResponse(200,"All Liked User List",postService.getAllLikelist(postID)),HttpStatus.OK
         );
     }
     @DeleteMapping("delete_post")
@@ -124,6 +122,39 @@ public class PostController {
                 new StandardResponse(200,"Reported Status: ",postService.reportPost(postReportDTO)),HttpStatus.OK
         );
     }
-
-
+    @PostMapping("replyComment")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<StandardResponse> replyComment(@RequestBody ReplyCommentDTO replyCommentDTO){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Comment Reply Status",postService.replyComment(replyCommentDTO)),HttpStatus.OK
+        );
+    }
+    @PostMapping("likeComment")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<StandardResponse> likeComment(@RequestBody LikeCommentDTO likeCommentDTO){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Liked Status",postService.likeComment(likeCommentDTO)),HttpStatus.OK
+        );
+    }
+    @PostMapping("likeReplyComenment")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<StandardResponse> likeReplyComment(@RequestBody LikeReplyCommentDTO likeReplyCommentDTO){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Liked Status",postService.likeReplyComment(likeReplyCommentDTO)),HttpStatus.OK
+        );
+    }
+    @GetMapping("getAllReplyComments")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<StandardResponse> getAllReplyComments(@RequestParam("commentID")String commentID){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"All Reply Comments",postService.getAllReplyComments(commentID)),HttpStatus.OK
+        );
+    }
+    @DeleteMapping("deleteReplyComment")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<StandardResponse> deleteReplyComment(@RequestParam("replyCommentID")String replyCommentId){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Reply Comment Deleted Status",postService.deleteReplyComment(replyCommentId)),HttpStatus.OK
+        );
+    }
 }

@@ -16,11 +16,14 @@ public class GatewayApplication {
 		return routeLocatorBuilder
 				.routes()
 				.route(predicateSpec -> predicateSpec
-						.path("/user/**")
+						.path("/userservice/**")
 						.uri("http://localhost:8200"))
 				.route(predicateSpec -> predicateSpec
 							.path("/vortexcoreservice/**")
 							.uri("http://localhost:8100"))
+				.route(predicateSpec -> predicateSpec
+						.path("/vortexpostservice/**")
+						.uri("http://localhost:8300"))
 				.build();
 	}
 

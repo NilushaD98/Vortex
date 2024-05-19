@@ -142,5 +142,16 @@ public class UserServiceIMPL implements UserService{
         FollowingDTO followingDTO  = userMapper.FollowingEntityToDTO(following);
         return followingDTO;
     }
+
+    @Override
+    public Boolean initializeFollowingAndFollowersList(String userEmail) {
+        Followers followers = new Followers();
+        followers.setUserEmail(userEmail);
+        followersRepository.save(followers);
+        Following following = new Following();
+        following.setUserEmail(userEmail);
+        followingRepository.save(following);
+        return true;
+    }
 }
 

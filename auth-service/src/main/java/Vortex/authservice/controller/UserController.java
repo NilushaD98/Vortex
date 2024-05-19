@@ -32,6 +32,12 @@ public class UserController {
                 new StandardResponse(201,"User Sign Up Status : ",userService.userSignUp(userSignUpDTO)), HttpStatus.CREATED
         );
     }
+    @PostMapping("google_sign_up")
+    public ResponseEntity<StandardResponse> googleSignUp(@RequestBody GoogleSignUpDTO googleSignUpDTO){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Auth Response",userService.googleSignUp(googleSignUpDTO)),HttpStatus.OK
+        );
+    }
     @PostMapping("seller_sign_up")
     public ResponseEntity<StandardResponse> sellerSignUp(@RequestBody SellerSignUpDTO sellerSignUpDTO){
         AuthResponseDTO authResponseDTO = userService.sellerSignUp(sellerSignUpDTO);
@@ -52,6 +58,10 @@ public class UserController {
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(302,"App User ", userByEmailDTO),HttpStatus.FOUND
         );
+    }
+    @GetMapping("get_user")
+    public UserByEmailDTO getUserByIdForPostService(@RequestParam("user_id") String user_id){
+        return userService.getUserbyEmail(user_id);
     }
     @PreAuthorize("hasRole('USER')")
     @PostMapping("update_user_public_details")

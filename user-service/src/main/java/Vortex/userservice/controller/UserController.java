@@ -56,4 +56,11 @@ public class UserController {
         );
     }
 
+    @PostMapping("initializeFollowingAndFollowersList")
+    public ResponseEntity<StandardResponse> initializeFollowingAndFollowersLis(@RequestParam("userEmail")String userEmail){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Initialize Status : ",userService.initializeFollowingAndFollowersList(userEmail)),HttpStatus.OK
+        );
+    }
+
 }

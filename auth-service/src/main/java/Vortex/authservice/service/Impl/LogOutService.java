@@ -28,7 +28,5 @@ public class LogOutService implements LogoutHandler {
         tokenRepository.save(token);
         SecurityContextHolder.clearContext();
 
-
-
     }
 }

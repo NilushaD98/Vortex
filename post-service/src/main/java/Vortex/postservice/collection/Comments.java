@@ -20,7 +20,8 @@ public class Comments {
     private String comment;
     private String commentUserEmail;
     private int commentLikeCount;
-    private List<ReplyComment> replyCommentList;
+    private List<String> likedUserList;
+    private List<String> replyCommentsIDList;
 
     public Comments(String postId, String comment, String commentUserEmail) {
         this.postId = postId;

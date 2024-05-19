@@ -19,11 +19,21 @@ public interface PostService {
     Boolean addComment(AddCommentDTO addCommentDTO);
     Boolean deleteComment(DeleteCommentDTO deleteCommentDTO);
 
-    List<ViewCommentDTO> getAllComments(String postID, int pageIndex);
+    List<ViewCommentDTO> getAllComments(String postID);
 
-    List<UserByEmailDTO> getAllLikelist(String postID, int pageIndex);
+    List<UserByEmailDTO> getAllLikelist(String postID);
 
     String reportPost(PostReportDTO postReportDTO);
 
     List<ReportedPostDTO> getAllReportedPosts();
+
+    Boolean replyComment(ReplyCommentDTO replyCommentDTO);
+
+    Boolean likeComment(LikeCommentDTO likeCommentDTO);
+
+    Boolean likeReplyComment(LikeReplyCommentDTO likeReplyCommentDTO);
+
+    List<ViewReplyCommentDTO> getAllReplyComments(String commentID);
+
+    Boolean deleteReplyComment(String replyCommentId);
 }

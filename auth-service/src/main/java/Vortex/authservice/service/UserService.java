@@ -34,4 +34,6 @@ public interface UserService {
     UserDTO viewAnotherUser(String userEmail, String viewUserEmail);
 
     Boolean updateDeliveryDetails(AddDeliverDetailsDTO addDeliverDetailsDTO);
+
+    AuthResponseDTO googleSignUp(GoogleSignUpDTO googleSignUpDTO);
 }

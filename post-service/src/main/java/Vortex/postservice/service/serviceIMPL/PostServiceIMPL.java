@@ -8,6 +8,7 @@ import Vortex.postservice.exception.PostNotFoundException;
 import Vortex.postservice.feign.AuthServiceProxy;
 import Vortex.postservice.repositories.*;
 import Vortex.postservice.service.PostService;
+import Vortex.postservice.util.StandardResponse;
 import Vortex.postservice.util.mappers.PostMappers;
 import Vortex.postservice.util.mappers.ReportedPostMapper;
 import com.mongodb.client.MongoClient;
@@ -24,7 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -38,8 +39,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class PostServiceIMPL implements PostService {
 
-    @Autowired
-    private KafkaTemplate<String,PostLikeDTO> kafkaTemplate;
+
     @Autowired
     private PostRepository postRepository;
     @Autowired
@@ -58,6 +58,8 @@ public class PostServiceIMPL implements PostService {
     private ReportedPostRepository reportedPostRepository;
     @Autowired
     private ReportedPostMapper reportedPostMapper;
+    @Autowired
+    private ReplyCommentRepository replyCommentRepository;
     private final MongoDatabase mongoDatabase;
     private final MongoDatabase userDataBase;
     private final MongoDatabase vortexDataBase;
@@ -89,16 +91,57 @@ public class PostServiceIMPL implements PostService {
                 likeUnlikeCommon(postLikeDTO,"$addToSet");
             }else {
                 likeRepository.save(new Like(postLikeDTO.getPostID(),List.of(postLikeDTO.getLikedUserEmail())));
-                likedLogRepository.save(new LikedLog(postLikeDTO.getPostAuthorEmail(),postLikeDTO.getLikedUserEmail(),List.of(postLikeDTO.getPostID())));
+                if(likedLogRepository.findLikedLogByAuthorEmailEqualsAndLikedUserEmailEquals(postLikeDTO.getPostAuthorEmail(),postLikeDTO.getLikedUserEmail()) == null){
+                    likedLogRepository.save(new LikedLog(postLikeDTO.getPostAuthorEmail(),postLikeDTO.getLikedUserEmail(),List.of(postLikeDTO.getPostID())));
+                }else {
+                    MongoCollection<Document> likedLogCollection = mongoDatabase.getCollection("likedlog");
+                    UpdateOptions options = new UpdateOptions().upsert(true);
+                    UpdateResult updateResultForLikedLog = likedLogCollection.updateOne(
+                            new Document("$and", Arrays.asList(
+                                    new Document("likedUserEmail", postLikeDTO.getLikedUserEmail()),
+                                    new Document("authorEmail", postLikeDTO.getPostAuthorEmail())
+                            )),
+                            new Document("$addToSet", new Document("likedPostList",postLikeDTO.getPostID())),
+                            options
+                    );
+                }
             }
             Optional<Post> byId = postRepository.findById(postLikeDTO.getPostID());
             byId.get().setLikeCount(byId.get().getLikeCount()+1);
             postRepository.save(byId.get());
-            kafkaTemplate.send("like-topic",postLikeDTO);
             return "success";
         }catch (Exception e){
             log.error(e.getMessage());
             return "Unsuccessful";
+        }
+    }
+    private Boolean likeUnlikeCommon(PostLikeDTO postLikeDTO,String likeOrUnlikeStatus){
+        try {
+            MongoCollection<Document> likeCollection = mongoDatabase.getCollection("like");
+            MongoCollection<Document> likedLogCollection = mongoDatabase.getCollection("likedlog");
+            UpdateOptions options = new UpdateOptions().upsert(true);
+            UpdateResult updateResultLike = likeCollection.updateOne(
+                    new Document("postId",postLikeDTO.getPostID()),
+                    new Document(likeOrUnlikeStatus, new Document("likedEmailList",postLikeDTO.getLikedUserEmail())),
+                    options
+            );
+            UpdateResult updateResultForLikedLog = likedLogCollection.updateOne(
+                    new Document("$and", Arrays.asList(
+                            new Document("likedUserEmail", postLikeDTO.getLikedUserEmail()),
+                            new Document("authorEmail", postLikeDTO.getPostAuthorEmail())
+                    )),
+                    new Document(likeOrUnlikeStatus, new Document("likedPostList",postLikeDTO.getPostID())),
+                    options
+            );
+            Optional<Post> byId = postRepository.findById(postLikeDTO.getPostID());
+            if(likeOrUnlikeStatus.equals("$pull")){
+                byId.get().setLikeCount(byId.get().getLikeCount()-1);
+            }
+            postRepository.save(byId.get());
+            return true;
+        }catch (Exception e){
+            log.error(e.getMessage());
+            return false;
         }
     }
     @Override
@@ -107,6 +150,13 @@ public class PostServiceIMPL implements PostService {
         Page<Post> postPage = postRepository.findPostsByPostAuthorEmailEquals(userProfileEmail,pageable);
         LikedLog likedLog = likedLogRepository.findLikedLogByAuthorEmailEqualsAndLikedUserEmailEquals(userProfileEmail,viewedUserEmail);
         List<PostViewDTO> postViewDTOList = postMappers.pageToPostViewList(postPage);
+        List<String> userList = new ArrayList<>();
+        userList.add(userProfileEmail);
+        List<UserByEmailDTO> user = authServiceProxy.getFollowingDataList(userList);
+        UserByEmailDTO user1 = user.get(0);
+        for(PostViewDTO postViewDTO : postViewDTOList){
+            postViewDTO.setPostAuthor(user1.getFirstName()+" "+user1.getLastName());
+        }
         if (likedLog != null) {
             Set<String> likedPostIds = new HashSet<>(likedLog.getLikedPostList());
             ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -177,32 +227,35 @@ public class PostServiceIMPL implements PostService {
             executorService.shutdown();
             Pageable pageableSharedPost = PageRequest.of(postPageIndex, 100, Sort.by("sharedTime").descending());
             Page<SharedPost> sharedPostPage = sharedPostRepository.findAll(pageableSharedPost);
-            for (SharedPost post : sharedPostPage) {
-                Post post1 = postRepository.findById(post.getPostID()).get();
-                Document queryForFetchAuthorUser = new Document("email", post1.getPostAuthorEmail());
-                Document queryForFetchSharedUser = new Document("email", post.getSharedUserEmail());
-                Document authorUserDocument = userCollection.find(queryForFetchAuthorUser).first();
-                Document sharedUserDocument = userCollection.find(queryForFetchSharedUser).first();
-                AllPostViewDTO allPostViewDTO = postMappers.postToAllPostViewDTO(post1);
-                allPostViewDTO.setPostAuthorName(
-                        authorUserDocument.getString("firstName") + " " + authorUserDocument.getString("lastName"));
-                allPostViewDTO.setPostAuthorProfileImageUrl(authorUserDocument.getString("profilePhotoURL"));
-                allPostViewDTO.setSharedUserEmail(post.getSharedUserEmail());
-                allPostViewDTO.setSharedUserName(
-                        sharedUserDocument.getString("firstName") + " " + sharedUserDocument.getString("lastName"));
-                allPostViewDTO.setSharedUserProfileImageUrl(sharedUserDocument.getString("profilePhotoURL"));
-                allPostViewDTO.setSharedComment(post.getSharedComment());
-                allPostViewDTO.setSharedTime(post.getSharedTime());
-                Document likeQuery = new Document("postId", post1.getPostID()).append("likedEmailList", userEmail);
-                Document likeResult = likeCollection.find(likeQuery).first();
-                boolean userLikedStatus = likeResult != null;
-                allPostViewDTO.setUserLikedStatus(userLikedStatus);
-                allPostViewDTOList.add(allPostViewDTO);
+            if(!sharedPostPage.isEmpty()){
+                for (SharedPost post : sharedPostPage) {
+                    Post post1 = postRepository.findById(post.getPostID()).get();
+                    Document queryForFetchAuthorUser = new Document("email", post1.getPostAuthorEmail());
+                    Document queryForFetchSharedUser = new Document("email", post.getSharedUserEmail());
+                    Document authorUserDocument = userCollection.find(queryForFetchAuthorUser).first();
+                    Document sharedUserDocument = userCollection.find(queryForFetchSharedUser).first();
+                    AllPostViewDTO allPostViewDTO = postMappers.postToAllPostViewDTO(post1);
+                    allPostViewDTO.setPostAuthorName(
+                            authorUserDocument.getString("firstName") + " " + authorUserDocument.getString("lastName"));
+                    allPostViewDTO.setPostAuthorProfileImageUrl(authorUserDocument.getString("profilePhotoURL"));
+                    allPostViewDTO.setSharedUserEmail(post.getSharedUserEmail());
+                    allPostViewDTO.setSharedUserName(
+                            sharedUserDocument.getString("firstName") + " " + sharedUserDocument.getString("lastName"));
+                    allPostViewDTO.setSharedUserProfileImageUrl(sharedUserDocument.getString("profilePhotoURL"));
+                    allPostViewDTO.setSharedComment(post.getSharedComment());
+                    allPostViewDTO.setSharedTime(post.getSharedTime());
+                    Document likeQuery = new Document("postId", post1.getPostID()).append("likedEmailList", userEmail);
+                    Document likeResult = likeCollection.find(likeQuery).first();
+                    boolean userLikedStatus = likeResult != null;
+                    allPostViewDTO.setUserLikedStatus(userLikedStatus);
+                    allPostViewDTOList.add(allPostViewDTO);
+                }
             }
+
             return allPostViewDTOList;
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            throw new InternalError("server error");
         }
     }
     @Override
@@ -231,28 +284,111 @@ public class PostServiceIMPL implements PostService {
     public Boolean addComment(AddCommentDTO addCommentDTO) {
         if(postRepository.findById(addCommentDTO.getPostID()).isPresent()){
             Comments comments = new Comments(
-                    addCommentDTO.getPostID(),addCommentDTO.getCommentUserEmail(),addCommentDTO.getComment()
+                    addCommentDTO.getPostID(),
+                    addCommentDTO.getComment(),
+                    addCommentDTO.getCommentUserEmail()
+
             );
             commentRepository.save(comments);
             return true;
-//            if(commentRepository.findByPostIdEquals(addCommentDTO.getPostID()).isPresent()){
-//                return addDeleteCommentCommon(addCommentDTO,"$addToSet");
-//            }else {
-//                List<ReplyComment> replyCommentList = new ArrayList<>();
-//                ReplyComment replyComment = new ReplyComment(addCommentDTO.getCommentUserEmail(),addCommentDTO.getComment());
-//                replyCommentList.add(replyComment);
-//                Comments comments = new Comments(addCommentDTO.getPostID(), replyCommentList);
-//                commentRepository.save(comments);
-//                return true;
-//            }
         }else {
             throw new PostNotFoundException();
         }
     }
     @Override
+    public Boolean replyComment(ReplyCommentDTO replyCommentDTO) {
+        Optional<Comments> byId = commentRepository.findById(replyCommentDTO.getMainCommentID());
+        if(byId.isPresent()){
+            ReplyComment replyComment = new ReplyComment(
+                    UUID.randomUUID().toString().substring(1,10),
+                    replyCommentDTO.getRepliedComment(),
+                    replyCommentDTO.getRepliedUserEmail(),
+                    replyCommentDTO.getMainCommentID()
+            );
+            replyCommentRepository.save(replyComment);
+            if(byId.get().getReplyCommentsIDList() == null){
+                byId.get().setReplyCommentsIDList(List.of(replyComment.getRepliedCommentID()));
+            }else {
+                byId.get().getReplyCommentsIDList().add(replyComment.getRepliedCommentID());
+            }
+            commentRepository.save(byId.get());
+            return true;
+        }else {
+            throw new CommentNotFoundException();
+        }
+    }
+
+    @Override
+    public Boolean likeComment(LikeCommentDTO likeCommentDTO) {
+        Comments comments = commentRepository.findById(likeCommentDTO.getLikedCommentId()).get();
+        comments.setCommentLikeCount(comments.getCommentLikeCount()+1);
+        if(comments.getLikedUserList() == null){
+            comments.setLikedUserList(List.of(likeCommentDTO.getLikedUserEmail()));
+        }else {
+            comments.getLikedUserList().add(likeCommentDTO.getLikedUserEmail());
+        }
+        commentRepository.save(comments);
+        return true;
+    }
+
+    @Override
+    public Boolean likeReplyComment(LikeReplyCommentDTO likeReplyCommentDTO) {
+        Optional<Comments> byId = commentRepository.findById(likeReplyCommentDTO.getMainCommentID());
+        Optional<ReplyComment> replyCommentById = replyCommentRepository.findById(likeReplyCommentDTO.getRepliedCommentID());
+        if (byId.isPresent() && replyCommentById.isPresent()){
+            replyCommentById.get().setLikedCount(replyCommentById.get().getLikedCount()+1);
+            replyCommentById.get().getLikedUserEmailList().add(likeReplyCommentDTO.getLikedUserEmail());
+            replyCommentRepository.save(replyCommentById.get());
+            return true;
+        }else {
+            throw new CommentNotFoundException();
+        }
+    }
+
+    @Override
+    public List<ViewReplyCommentDTO> getAllReplyComments(String commentID) {
+        Optional<Comments> commentsByCommentIDEquals = commentRepository.findCommentsByCommentIDEquals(commentID);
+        if(commentsByCommentIDEquals.isPresent()){
+            List<ViewReplyCommentDTO> viewReplyCommentDTOList = new ArrayList<>();
+            List<ReplyComment> replyCommentList  = replyCommentRepository.findByRepliedCommentIDIn(commentsByCommentIDEquals.get().getReplyCommentsIDList());
+            for(ReplyComment replyComment:replyCommentList){
+                UserByEmailDTO data = (UserByEmailDTO) authServiceProxy.findAccountById(replyComment.getRepliedUserEmail()).getBody().getData();
+                ViewReplyCommentDTO viewReplyCommentDTO = new ViewReplyCommentDTO(
+                        replyComment.getRepliedCommentID(),
+                        replyComment.getRepliedComment(),
+                        replyComment.getRepliedUserEmail(),
+                        (data.getFirstName()+" "+data.getLastName()),
+                        data.getProfilePhotoURL(),
+                        replyComment.getMainCommentID(),
+                        replyComment.getLikedCount(),
+                        authServiceProxy.getFollowingDataList(replyComment.getLikedUserEmailList())
+                );
+                viewReplyCommentDTOList.add(viewReplyCommentDTO);
+            }
+            return viewReplyCommentDTOList;
+        }else {
+            throw new CommentNotFoundException();
+        }
+    }
+
+    @Override
+    public Boolean deleteReplyComment(String replyCommentId) {
+        Optional<ReplyComment> byId = replyCommentRepository.findById(replyCommentId);
+        if(byId.isPresent()){
+            replyCommentRepository.deleteById(replyCommentId);
+            return true;
+        }else {
+            throw new CommentNotFoundException();
+        }
+    }
+
+    @Override
     public Boolean deleteComment(DeleteCommentDTO deleteCommentDTO){
         Optional<Comments> commentsById=commentRepository.findCommentsByCommentIDEquals(deleteCommentDTO.getCommentID());
         if(commentsById.isPresent() && deleteCommentDTO.getAuthorEmail().equals(commentsById.get().getCommentUserEmail())){
+            if(commentsById.get().getReplyCommentsIDList() != null){
+                replyCommentRepository.deleteAllById(commentsById.get().getReplyCommentsIDList());
+            }
             commentRepository.deleteById(deleteCommentDTO.getCommentID());
             return true;
         }else {
@@ -260,29 +396,27 @@ public class PostServiceIMPL implements PostService {
         }
     }
     @Override
-    public List<ViewCommentDTO> getAllComments(String postID, int pageIndex) {
-        Optional<Comments> byPostIdEquals = commentRepository.findByPostIdEquals(postID);
-        if(byPostIdEquals.isPresent()){
-            Comments comments = byPostIdEquals.get();
-            List<ReplyComment> replyCommentList = comments.getCommentList();
-            List<ViewCommentDTO> viewCommentDTOS = new ArrayList<>();
-            ViewCommentDTO viewCommentDTO = new ViewCommentDTO();
-            for (ReplyComment replyComment : replyCommentList) {
-                UserByEmailDTO user = (UserByEmailDTO)authServiceProxy.findAccountById(replyComment.getCommentedUserEmail()).getBody().getData();
-                viewCommentDTO.setCommentedUserEmail(user.getEmail());
-                viewCommentDTO.setCommentedUserName(user.getFirstName()+" "+user.getLastName());
-                viewCommentDTO.setCommentedUserProfilePictureURL(user.getProfilePhotoURL());
-                viewCommentDTO.setComment(replyComment.getComment());
-                viewCommentDTOS.add(viewCommentDTO);
+    public List<ViewCommentDTO> getAllComments(String postID) {
+        List<ViewCommentDTO> viewCommentDTOList = new ArrayList<>();
+        List<Comments> byPostIdEquals = commentRepository.findByPostIdEquals(postID);
+            for(Comments comments : byPostIdEquals){
+                UserByEmailDTO userByEmailDTO = authServiceProxy.getUser(comments.getCommentUserEmail());
+                ViewCommentDTO viewCommentDTO = new ViewCommentDTO();
+                viewCommentDTO.setCommentID(comments.getCommentID());
+                viewCommentDTO.setCommentedUserEmail(comments.getCommentUserEmail());
+                viewCommentDTO.setCommentedUserName((userByEmailDTO.getFirstName()+" "+userByEmailDTO.getLastName()));
+                viewCommentDTO.setCommentedUserProfilePictureURL(userByEmailDTO.getProfilePhotoURL());
+                viewCommentDTO.setComment(comments.getComment());
+                viewCommentDTO.setCommentLikeCount(comments.getCommentLikeCount());
+                if(comments.getLikedUserList() != null){
+                    viewCommentDTO.setLikedUsersList(authServiceProxy.getFollowingDataList(comments.getLikedUserList()));
+                }
+                viewCommentDTOList.add(viewCommentDTO);
             }
-            return viewCommentDTOS;
-        }else  {
-            throw new PostNotFoundException();
-        }
+            return viewCommentDTOList;
     }
-
     @Override
-    public List<UserByEmailDTO> getAllLikelist(String postID, int pageIndex) {
+    public List<UserByEmailDTO> getAllLikelist(String postID) {
         Optional<Post> byId  = postRepository.findById(postID);
         if(byId.isPresent()){
             Optional<Like> likeByPostIdEquals = likeRepository.findLikeByPostIdEquals(postID);
@@ -296,7 +430,6 @@ public class PostServiceIMPL implements PostService {
         reportedPostRepository.save(reportedPostMapper.DTOToEntity(postReportDTO));
         return "success";
     }
-
     @Override
     public List<ReportedPostDTO> getAllReportedPosts() {
         List<ReportedPostDTO> reportedPostDTOList = new ArrayList<>();
@@ -324,33 +457,4 @@ public class PostServiceIMPL implements PostService {
         return reportedPostDTOList;
     }
 
-    private Boolean likeUnlikeCommon(PostLikeDTO postLikeDTO,String likeOrUnlikeStatus){
-        try {
-            MongoCollection<Document> likeCollection = mongoDatabase.getCollection("like");
-            MongoCollection<Document> likedLogCollection = mongoDatabase.getCollection("likedlog");
-            UpdateOptions options = new UpdateOptions().upsert(true);
-            UpdateResult updateResultLike = likeCollection.updateOne(
-                    new Document("postId",postLikeDTO.getPostID()),
-                    new Document(likeOrUnlikeStatus, new Document("likedEmailList",postLikeDTO.getLikedUserEmail())),
-                    options
-            );
-            UpdateResult updateResultForLikedLog = likedLogCollection.updateOne(
-                    new Document("$and", Arrays.asList(
-                            new Document("likedUserEmail", postLikeDTO.getLikedUserEmail()),
-                            new Document("authorEmail", postLikeDTO.getPostAuthorEmail())
-                    )),
-                    new Document(likeOrUnlikeStatus, new Document("likedPostList",postLikeDTO.getPostID())),
-                    options
-            );
-            Optional<Post> byId = postRepository.findById(postLikeDTO.getPostID());
-            if(likeOrUnlikeStatus.equals("$pull")){
-                byId.get().setLikeCount(byId.get().getLikeCount()-1);
-            }
-            postRepository.save(byId.get());
-            return true;
-        }catch (Exception e){
-            log.error(e.getMessage());
-            return false;
-        }
-    }
 }

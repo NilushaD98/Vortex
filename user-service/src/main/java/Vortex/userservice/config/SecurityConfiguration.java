@@ -24,7 +24,7 @@ public class SecurityConfiguration {
                 .csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable())
               .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.disable())
               .authorizeHttpRequests(
-                      req -> req.requestMatchers("/**").permitAll()
+                      req -> req.requestMatchers("/**","/userservice/api/v1/user/initializeFollowingAndFollowersList").permitAll()
               )
               .sessionManagement(httpSecuritySessionManagementConfigurer ->
                       httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

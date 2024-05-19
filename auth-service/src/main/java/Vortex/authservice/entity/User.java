@@ -22,28 +22,20 @@ public class User implements UserDetails {
 
     @Id
     private String userid;
-    @NonNull
     private String firstName;
-    @NonNull
     private String lastName;
-    @NonNull
     private Date birthDay;
-    @NonNull
     private String email;
-    @NonNull
     private String contact;
-    @NonNull
     private String country;
-    @NonNull
     private String deliveryAddress;
     private String nic;
     private String password;
     private String profilePhotoURL;
     private String bio;
-    @NonNull
     private Roles role;
 
-    public User(@NonNull String firstName, @NonNull String lastName, @NonNull Date birthDay, @NonNull String email, @NonNull String contact, @NonNull String country, @NonNull String password, @NonNull Roles role) {
+    public User(String firstName,  String lastName,  Date birthDay,  String email,  String contact,  String country, String password, Roles role) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthDay = birthDay;
@@ -51,6 +43,15 @@ public class User implements UserDetails {
         this.contact = contact;
         this.country = country;
         this.password = password;
+        this.role = role;
+    }
+
+    public User( String firstName,  String lastName,  String email, String password, String profilePhotoURL,  Roles role) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.profilePhotoURL = profilePhotoURL;
         this.role = role;
     }
 

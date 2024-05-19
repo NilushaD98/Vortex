@@ -18,4 +18,9 @@ public class Following {
     private String userID;
     private String userEmail;
     private List<String> followingUserEmailList;
+
+    public Following(String userEmail, List<String> followingUserEmailList) {
+        this.userEmail = userEmail;
+        this.followingUserEmailList = followingUserEmailList;
+    }
 }

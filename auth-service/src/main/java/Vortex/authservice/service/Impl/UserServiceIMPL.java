@@ -12,6 +12,7 @@ import Vortex.authservice.enums.Roles;
 import Vortex.authservice.exceptions.EmailSenderErrorResponse;
 import Vortex.authservice.exceptions.UserAlreadyReportedException;
 import Vortex.authservice.exceptions.UserNotFoundException;
+import Vortex.authservice.feign.UserServiceProxy;
 import Vortex.authservice.repository.OTPRepository;
 import Vortex.authservice.repository.SellerDetailsRepository;
 import Vortex.authservice.repository.UserRepository;
@@ -31,10 +32,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 import static Vortex.authservice.enums.Roles.USER;
 
@@ -50,6 +48,7 @@ public class UserServiceIMPL implements UserService{
     private final OTPRepository otpRepository;
     private final SellerDetailsRepository sellerDetailsRepository;
     private final UserMapper userMapper;
+    private final UserServiceProxy userServiceProxy;
 
 
 
@@ -69,12 +68,37 @@ public class UserServiceIMPL implements UserService{
                     USER
             );
             userRepository.save(user);
+            userServiceProxy.initializeFollowingAndFollowersLis(userSignUpDTO.getEmail());
             AuthResponseDTO authenticateResponse = authService.authenticate(new DefaultAuthenticationDTO(
                     userSignUpDTO.getEmail(),
                     userSignUpDTO.getPassword()
             ));
             return authenticateResponse;
         }
+    }
+    @Override
+    public AuthResponseDTO googleSignUp(GoogleSignUpDTO googleSignUpDTO) {
+        AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+        String uuid = UUID.randomUUID().toString().replace("-", "");
+        String customPassword = uuid.substring(0, Math.min(8, uuid.length()));
+        Optional<User> byEmailEquals = userRepository.findByEmailEquals(googleSignUpDTO.getEmail());
+        if (byEmailEquals.isEmpty()){
+            User user = new User(
+                    googleSignUpDTO.getFirstName(),
+                    googleSignUpDTO.getLastName(),
+                    googleSignUpDTO.getEmail(),
+                    passwordEncoder.encode(customPassword),
+                    googleSignUpDTO.getProfilePhotoURL(),
+                    USER
+            );
+            userRepository.save(user);
+            userServiceProxy.initializeFollowingAndFollowersLis(googleSignUpDTO.getEmail());
+        }else {
+            byEmailEquals.get().setPassword(passwordEncoder.encode(customPassword));
+            userRepository.save(byEmailEquals.get());
+        }
+        authResponseDTO = authService.authenticate(new DefaultAuthenticationDTO(googleSignUpDTO.getEmail(),customPassword));
+        return authResponseDTO;
     }
     @Override
     public UserByEmailDTO getUserById(String userId) {
@@ -125,7 +149,10 @@ public class UserServiceIMPL implements UserService{
     @Override
     public OtpResponse sendOtpToEmail(String email) {
         int otp = generateRandomOTP();
-        boolean vortexOtp = mailSender(email, "Vortex OTP", "V - " + Integer.toString(otp));
+        boolean vortexOtp = mailSender(email, "Vortex OTP", "V - " + Integer.toString(otp)+"If you didn't request this, simply ignore this message.\n" +
+                "\n" +
+                "Yours,\n" +
+                "The Vortex Team");
         if(vortexOtp){
             OTP otp1 = new OTP(
                     email,
@@ -241,6 +268,8 @@ public class UserServiceIMPL implements UserService{
         }
     }
 
+
+
     public static int generateRandomOTP() {
         int min = 100000;
         int max = 999999;
@@ -265,6 +294,5 @@ public class UserServiceIMPL implements UserService{
     public void cleanupExpiredOTPRecords() {
         Date currentTime = new Date(System.currentTimeMillis());
         otpRepository.deleteOTPSByOtpExpirationTimeBefore(currentTime);
-        log.info("Expired OTP Deleted");
     }
 }

@@ -70,7 +70,6 @@ public class AuthServiceIMPL implements AuthService {
             throw new UserNotFoundException();
         }
     }
-
     private void revokeAllUserToken(User user){
         List<Token> tokens = tokenRepository.findTokensByUserEmailEquals(user.getEmail());
         if(tokens.isEmpty()){

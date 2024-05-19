@@ -20,7 +20,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
     public ResponseEntity<Object> handleUserNotFoundException(
             UserNotFoundException ex, WebRequest request) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("User not found  in the database");
+                .body("User not found  with given user ID");
     }
     @ExceptionHandler(EmailSenderErrorResponse.class)
     public ResponseEntity<Object> handleEmailSenderErrorResponse(
