@@ -19,5 +19,6 @@ public class ViewCommentDTO {
     private String comment;
     private int commentLikeCount;
     private List<UserByEmailDTO> likedUsersList;
+    private Boolean userLikedStatus;
     
 }

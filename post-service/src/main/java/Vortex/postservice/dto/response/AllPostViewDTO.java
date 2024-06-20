@@ -30,4 +30,5 @@ public class AllPostViewDTO {
     private String sharedComment;
     private Date sharedTime;
     private Boolean userLikedStatus;
+    private Boolean userFollowedStatus;
 }

@@ -26,6 +26,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -60,9 +62,15 @@ public class PostServiceIMPL implements PostService {
     private ReportedPostMapper reportedPostMapper;
     @Autowired
     private ReplyCommentRepository replyCommentRepository;
+    @Autowired
+    private AuthorizedUserService authorizedUserService;
+    @Autowired
+    private KafkaTemplate<String,Object> kafkaTemplate;
+
     private final MongoDatabase mongoDatabase;
     private final MongoDatabase userDataBase;
     private final MongoDatabase vortexDataBase;
+
 
     public PostServiceIMPL(){
         MongoClient mongoClient = MongoClients.create("mongodb+srv://root:1234@cluster0.ucithrp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
@@ -109,6 +117,7 @@ public class PostServiceIMPL implements PostService {
             Optional<Post> byId = postRepository.findById(postLikeDTO.getPostID());
             byId.get().setLikeCount(byId.get().getLikeCount()+1);
             postRepository.save(byId.get());
+            kafkaTemplate.send("like",postLikeDTO);
             return "success";
         }catch (Exception e){
             log.error(e.getMessage());
@@ -216,6 +225,7 @@ public class PostServiceIMPL implements PostService {
                     Document likeResult = likeCollection.find(likeQuery).first();
                     boolean userLikedStatus = likeResult != null;
                     post.setUserLikedStatus(userLikedStatus);
+                    post.setUserFollowedStatus(true);
                     post.setPostAuthorName(
                             userDocument.getString("firstName") + " " + userDocument.getString("lastName"));
                     post.setPostAuthorProfileImageUrl(userDocument.getString("profilePhotoURL"));
@@ -235,6 +245,7 @@ public class PostServiceIMPL implements PostService {
                     Document authorUserDocument = userCollection.find(queryForFetchAuthorUser).first();
                     Document sharedUserDocument = userCollection.find(queryForFetchSharedUser).first();
                     AllPostViewDTO allPostViewDTO = postMappers.postToAllPostViewDTO(post1);
+                    allPostViewDTO.setUserFollowedStatus(true);
                     allPostViewDTO.setPostAuthorName(
                             authorUserDocument.getString("firstName") + " " + authorUserDocument.getString("lastName"));
                     allPostViewDTO.setPostAuthorProfileImageUrl(authorUserDocument.getString("profilePhotoURL"));
@@ -255,6 +266,49 @@ public class PostServiceIMPL implements PostService {
             return allPostViewDTOList;
         } catch (Exception e) {
             e.printStackTrace();
+            throw new InternalError("server error");
+        }
+    }
+
+    @Override
+    public List<AllPostViewDTO> getAllHomePagePosts(String userEmail, int postPageIndex) {
+
+        try {
+            Pageable pageablePost = PageRequest.of(postPageIndex, 50, Sort.by("postedTime").descending());
+            Page<Post> postPage = postRepository.findAll(pageablePost);
+            List<AllPostViewDTO> allPostViewDTOList = postMappers.PageToDtoList(postPage);
+            MongoCollection<Document> likeCollection = mongoDatabase.getCollection("like");
+            MongoCollection<Document> userCollection = vortexDataBase.getCollection("user");
+            MongoCollection<Document> followingCollection = userDataBase.getCollection("following");
+
+            List<Future<?>> futures = new ArrayList<>();
+            ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            for (AllPostViewDTO post : allPostViewDTOList) {
+                futures.add(executorService.submit(() -> {
+                    Document queryForFetchUser = new Document("email", post.getPostAuthorEmail());
+                    Document queryForGetFoll0wingList = new Document("userEmail",userEmail).append("followingUserEmailList",post.getPostAuthorEmail());
+                    Document followResult = followingCollection.find(queryForGetFoll0wingList).first();
+                    Document userDocument = userCollection.find(queryForFetchUser).first();
+                    String postId = post.getPostID();
+                    Document likeQuery = new Document("postId", postId).append("likedEmailList", userEmail);
+                    Document likeResult = likeCollection.find(likeQuery).first();
+                    boolean userLikedStatus = likeResult != null;
+                    boolean userFollowStatus = followResult != null;
+                    post.setUserFollowedStatus(userFollowStatus);
+                    post.setUserLikedStatus(userLikedStatus);
+                    post.setUserFollowedStatus(true);
+                    post.setPostAuthorName(
+                            userDocument.getString("firstName") + " " + userDocument.getString("lastName"));
+                    post.setPostAuthorProfileImageUrl(userDocument.getString("profilePhotoURL"));
+                }));
+            }
+            for (Future<?> future : futures) {
+                future.get();
+            }
+            executorService.shutdown();
+            return allPostViewDTOList;
+        }catch (Exception e){
+            log.error(e.getMessage());
             throw new InternalError("server error");
         }
     }
@@ -336,8 +390,13 @@ public class PostServiceIMPL implements PostService {
         Optional<Comments> byId = commentRepository.findById(likeReplyCommentDTO.getMainCommentID());
         Optional<ReplyComment> replyCommentById = replyCommentRepository.findById(likeReplyCommentDTO.getRepliedCommentID());
         if (byId.isPresent() && replyCommentById.isPresent()){
-            replyCommentById.get().setLikedCount(replyCommentById.get().getLikedCount()+1);
-            replyCommentById.get().getLikedUserEmailList().add(likeReplyCommentDTO.getLikedUserEmail());
+            if(replyCommentById.get().getLikedUserEmailList() ==null){
+                replyCommentById.get().setLikedCount(1);
+                replyCommentById.get().setLikedUserEmailList(List.of(likeReplyCommentDTO.getLikedUserEmail()));
+            }else {
+                replyCommentById.get().setLikedCount(replyCommentById.get().getLikedCount()+1);
+                replyCommentById.get().getLikedUserEmailList().add(likeReplyCommentDTO.getLikedUserEmail());
+            }
             replyCommentRepository.save(replyCommentById.get());
             return true;
         }else {
@@ -351,18 +410,26 @@ public class PostServiceIMPL implements PostService {
         if(commentsByCommentIDEquals.isPresent()){
             List<ViewReplyCommentDTO> viewReplyCommentDTOList = new ArrayList<>();
             List<ReplyComment> replyCommentList  = replyCommentRepository.findByRepliedCommentIDIn(commentsByCommentIDEquals.get().getReplyCommentsIDList());
+            String authorizedUser = authorizedUserService.getAuthorizedUser();
             for(ReplyComment replyComment:replyCommentList){
-                UserByEmailDTO data = (UserByEmailDTO) authServiceProxy.findAccountById(replyComment.getRepliedUserEmail()).getBody().getData();
-                ViewReplyCommentDTO viewReplyCommentDTO = new ViewReplyCommentDTO(
-                        replyComment.getRepliedCommentID(),
-                        replyComment.getRepliedComment(),
-                        replyComment.getRepliedUserEmail(),
-                        (data.getFirstName()+" "+data.getLastName()),
-                        data.getProfilePhotoURL(),
-                        replyComment.getMainCommentID(),
-                        replyComment.getLikedCount(),
-                        authServiceProxy.getFollowingDataList(replyComment.getLikedUserEmailList())
-                );
+                UserByEmailDTO data = authServiceProxy.getFollowingDataList(List.of(replyComment.getRepliedUserEmail())).get(0);
+                ViewReplyCommentDTO viewReplyCommentDTO = new ViewReplyCommentDTO();
+                viewReplyCommentDTO.setRepliedCommentID(replyComment.getRepliedCommentID());
+                viewReplyCommentDTO.setRepliedComment(replyComment.getRepliedComment());
+                viewReplyCommentDTO.setRepliedUserEmail(replyComment.getRepliedUserEmail());
+                viewReplyCommentDTO.setRepliedUserName((data.getFirstName()+" "+data.getLastName()));
+                viewReplyCommentDTO.setRepliedUserProfilePictureURL(data.getProfilePhotoURL());
+                viewReplyCommentDTO.setMainCommentID(replyComment.getMainCommentID());
+                if(replyComment.getLikedCount() != 0){
+                    viewReplyCommentDTO.setLikedCount(replyComment.getLikedCount());
+                    viewReplyCommentDTO.setLikedUsersList(authServiceProxy.getFollowingDataList(replyComment.getLikedUserEmailList()));
+                    if(replyComment.getLikedUserEmailList().contains(authorizedUser)){
+                        viewReplyCommentDTO.setUserLikedStatus(true);
+                    }else {
+                        viewReplyCommentDTO.setUserLikedStatus(false);
+                    }
+                }
+                viewReplyCommentDTO.setLikedCount(replyComment.getLikedCount());
                 viewReplyCommentDTOList.add(viewReplyCommentDTO);
             }
             return viewReplyCommentDTOList;
@@ -382,6 +449,7 @@ public class PostServiceIMPL implements PostService {
         }
     }
 
+
     @Override
     public Boolean deleteComment(DeleteCommentDTO deleteCommentDTO){
         Optional<Comments> commentsById=commentRepository.findCommentsByCommentIDEquals(deleteCommentDTO.getCommentID());
@@ -396,10 +464,11 @@ public class PostServiceIMPL implements PostService {
         }
     }
     @Override
-    public List<ViewCommentDTO> getAllComments(String postID) {
+    public List<ViewCommentDTO> getAllComments(String postID ) {
         List<ViewCommentDTO> viewCommentDTOList = new ArrayList<>();
         List<Comments> byPostIdEquals = commentRepository.findByPostIdEquals(postID);
-            for(Comments comments : byPostIdEquals){
+        String authorizedUser = authorizedUserService.getAuthorizedUser();
+        for(Comments comments : byPostIdEquals){
                 UserByEmailDTO userByEmailDTO = authServiceProxy.getUser(comments.getCommentUserEmail());
                 ViewCommentDTO viewCommentDTO = new ViewCommentDTO();
                 viewCommentDTO.setCommentID(comments.getCommentID());
@@ -408,9 +477,14 @@ public class PostServiceIMPL implements PostService {
                 viewCommentDTO.setCommentedUserProfilePictureURL(userByEmailDTO.getProfilePhotoURL());
                 viewCommentDTO.setComment(comments.getComment());
                 viewCommentDTO.setCommentLikeCount(comments.getCommentLikeCount());
-                if(comments.getLikedUserList() != null){
-                    viewCommentDTO.setLikedUsersList(authServiceProxy.getFollowingDataList(comments.getLikedUserList()));
+            if(comments.getLikedUserList() != null){
+                viewCommentDTO.setLikedUsersList(authServiceProxy.getFollowingDataList(comments.getLikedUserList()));
+                if(comments.getLikedUserList().contains(authorizedUser)){
+                    viewCommentDTO.setUserLikedStatus(true);
+                }else {
+                    viewCommentDTO.setUserLikedStatus(false);
                 }
+            }
                 viewCommentDTOList.add(viewCommentDTO);
             }
             return viewCommentDTOList;

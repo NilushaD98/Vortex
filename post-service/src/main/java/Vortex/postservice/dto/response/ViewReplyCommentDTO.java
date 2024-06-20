@@ -22,5 +22,7 @@ public class ViewReplyCommentDTO {
     private String mainCommentID;
     private int likedCount;
     private List<UserByEmailDTO> likedUsersList;
+    private Boolean userLikedStatus;
+
 
 }

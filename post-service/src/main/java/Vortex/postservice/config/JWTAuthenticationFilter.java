@@ -32,13 +32,14 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request, response);
             }
             jwt = authHeader.substring(7);
-            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+        String user = jwtService.extractUsername(jwt);
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 if (!jwtService.isTokenExpired(jwt)) {
                     log.error(jwt);
                     log.error(jwtService.extractAuthorities(jwt).toString());
                     List<GrantedAuthority> authorities = jwtService.extractAuthorities(jwt);
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                            null,null,authorities
+                            user,null,authorities
                     );
                     usernamePasswordAuthenticationToken
                             .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

@@ -73,6 +73,16 @@ public class PostController {
                 new StandardResponse(200,"All posts ",postService.getAllPosts(userEmail,postPageIndex)),HttpStatus.OK
         );
     }
+    @GetMapping("getAllPosts")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<StandardResponse> getAllPosts(
+            @RequestParam("userEmail")String userEmail,
+            @RequestParam("postPageIndex")int postPageIndex
+    ){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"All Homepage Posts",postService.getAllHomePagePosts(userEmail,postPageIndex)),HttpStatus.OK
+        );
+    }
     @PostMapping("add_comment")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> addComment(@RequestBody AddCommentDTO addCommentDTO){
@@ -136,7 +146,7 @@ public class PostController {
                 new StandardResponse(200,"Liked Status",postService.likeComment(likeCommentDTO)),HttpStatus.OK
         );
     }
-    @PostMapping("likeReplyComenment")
+    @PostMapping("likeReplyComment")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> likeReplyComment(@RequestBody LikeReplyCommentDTO likeReplyCommentDTO){
         return new ResponseEntity<StandardResponse>(
@@ -157,4 +167,5 @@ public class PostController {
                 new StandardResponse(200,"Reply Comment Deleted Status",postService.deleteReplyComment(replyCommentId)),HttpStatus.OK
         );
     }
+
 }

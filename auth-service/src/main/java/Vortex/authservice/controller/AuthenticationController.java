@@ -11,6 +11,7 @@ import Vortex.authservice.util.StandardResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -34,6 +35,7 @@ public class AuthenticationController {
                 new StandardResponse(200,"Otp Mail Send Status : ",otpResponse),HttpStatus.OK
         );
     }
+
     @PostMapping("check_otp_for_password_change")
     public ResponseEntity<StandardResponse> checkOTPForPasswordChange(@RequestBody CheckOTPDTO checkOTPDTO){
         boolean otpCheckStatus = userService.checkOTP(checkOTPDTO);

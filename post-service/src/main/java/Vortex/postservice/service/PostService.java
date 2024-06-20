@@ -36,4 +36,6 @@ public interface PostService {
     List<ViewReplyCommentDTO> getAllReplyComments(String commentID);
 
     Boolean deleteReplyComment(String replyCommentId);
+
+    List<AllPostViewDTO> getAllHomePagePosts(String userEmail, int postPageIndex);
 }
