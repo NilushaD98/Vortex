@@ -22,8 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -45,6 +45,8 @@ public class UserServiceIMPL implements UserService{
     private MongoOperations mongoOperations;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private KafkaTemplate<Object, Object> kafkaTemplate;
 
     public  UserServiceIMPL() {
         MongoClient mongoClient = MongoClients.create("mongodb+srv://root:1234@cluster0.ucithrp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
@@ -55,6 +57,7 @@ public class UserServiceIMPL implements UserService{
     @Override
     public String follow(FollowRequestDTO followRequestDTO) {
         if(databaseUpdate(followRequestDTO,"$addToSet")){
+            kafkaTemplate.send("follow",followRequestDTO);
             return "success";
         }else {
             return "unsuccessful";
@@ -147,10 +150,20 @@ public class UserServiceIMPL implements UserService{
     public Boolean initializeFollowingAndFollowersList(String userEmail) {
         Followers followers = new Followers();
         followers.setUserEmail(userEmail);
+        followers.setFollowersEmailList(List.of("null"));
         followersRepository.save(followers);
         Following following = new Following();
         following.setUserEmail(userEmail);
+        following.setFollowingUserEmailList(List.of("null"));
         followingRepository.save(following);
+
+        Following byUserEmailEquals = followingRepository.findByUserEmailEquals(userEmail);
+        byUserEmailEquals.getFollowingUserEmailList().remove(0);
+        followingRepository.save(byUserEmailEquals);
+
+        Followers byUserEmailEquals1 = followersRepository.findByUserEmailEquals(userEmail);
+        byUserEmailEquals1.getFollowersEmailList().remove(0);
+        followersRepository.save(byUserEmailEquals1);
         return true;
     }
 }

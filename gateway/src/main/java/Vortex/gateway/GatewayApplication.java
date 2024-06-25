@@ -24,6 +24,9 @@ public class GatewayApplication {
 				.route(predicateSpec -> predicateSpec
 						.path("/vortexpostservice/**")
 						.uri("http://localhost:8300"))
+				.route(predicateSpec -> predicateSpec
+						.path("/vortexnotificationservice/**")
+						.uri("http://localhost:8400"))
 				.build();
 	}
 

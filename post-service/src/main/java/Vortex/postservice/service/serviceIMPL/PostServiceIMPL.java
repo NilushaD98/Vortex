@@ -8,7 +8,6 @@ import Vortex.postservice.exception.PostNotFoundException;
 import Vortex.postservice.feign.AuthServiceProxy;
 import Vortex.postservice.repositories.*;
 import Vortex.postservice.service.PostService;
-import Vortex.postservice.util.StandardResponse;
 import Vortex.postservice.util.mappers.PostMappers;
 import Vortex.postservice.util.mappers.ReportedPostMapper;
 import com.mongodb.client.MongoClient;
@@ -25,9 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -296,7 +293,6 @@ public class PostServiceIMPL implements PostService {
                     boolean userFollowStatus = followResult != null;
                     post.setUserFollowedStatus(userFollowStatus);
                     post.setUserLikedStatus(userLikedStatus);
-                    post.setUserFollowedStatus(true);
                     post.setPostAuthorName(
                             userDocument.getString("firstName") + " " + userDocument.getString("lastName"));
                     post.setPostAuthorProfileImageUrl(userDocument.getString("profilePhotoURL"));
@@ -344,6 +340,7 @@ public class PostServiceIMPL implements PostService {
 
             );
             commentRepository.save(comments);
+            kafkaTemplate.send("comment",addCommentDTO);
             return true;
         }else {
             throw new PostNotFoundException();

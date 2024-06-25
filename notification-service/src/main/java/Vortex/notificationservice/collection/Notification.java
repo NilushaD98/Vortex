@@ -29,4 +29,5 @@ public class Notification {
     private String reactionMessage;
     private String commentMessage;
     private Date reactedTime;
+    private Boolean readStatus;
 }
