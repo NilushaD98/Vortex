@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface ReplyCommentRepository extends MongoRepository<ReplyComment,String> {
     List<ReplyComment> findByRepliedCommentIDIn(List<String> replyCommentsIDList);
+
+    void deleteAllByRepliedUserEmailEquals(String userEmail);
 }

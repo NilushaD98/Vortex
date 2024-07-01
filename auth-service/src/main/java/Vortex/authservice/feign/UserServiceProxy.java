@@ -4,6 +4,7 @@ import Vortex.authservice.util.StandardResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -12,4 +13,7 @@ public interface UserServiceProxy {
 
     @PostMapping("/userservice/api/v1/user/initializeFollowingAndFollowersList")
     public ResponseEntity<StandardResponse> initializeFollowingAndFollowersLis(@RequestParam("userEmail")String userEmail);
+
+    @DeleteMapping("/userservice/api/v1/user/removeUser")
+    public Boolean removeUser(@RequestParam("userEmail")String userEmail);
 }

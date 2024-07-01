@@ -12,6 +12,7 @@ import Vortex.authservice.enums.Roles;
 import Vortex.authservice.exceptions.EmailSenderErrorResponse;
 import Vortex.authservice.exceptions.UserAlreadyReportedException;
 import Vortex.authservice.exceptions.UserNotFoundException;
+import Vortex.authservice.feign.PostServiceProxy;
 import Vortex.authservice.feign.UserServiceProxy;
 import Vortex.authservice.repository.OTPRepository;
 import Vortex.authservice.repository.SellerDetailsRepository;
@@ -49,6 +50,7 @@ public class UserServiceIMPL implements UserService{
     private final SellerDetailsRepository sellerDetailsRepository;
     private final UserMapper userMapper;
     private final UserServiceProxy userServiceProxy;
+    private final PostServiceProxy postServiceProxy;
 
 
 
@@ -100,6 +102,35 @@ public class UserServiceIMPL implements UserService{
         authResponseDTO = authService.authenticate(new DefaultAuthenticationDTO(googleSignUpDTO.getEmail(),customPassword));
         return authResponseDTO;
     }
+
+    @Override
+    public List<FollowerDetailsDTO> searchUser(String username) {
+        List<FollowerDetailsDTO> searchResult = new ArrayList<>();
+
+        List<User> userList = userRepository.findUserByFirstNamePattern(username);
+        if(userList != null){
+            List<FollowerDetailsDTO> followerDetailsDTOList = userMapper.EntityTOFollowerDetailsDTO(userList);
+            searchResult.addAll(followerDetailsDTOList);
+        }
+        List<User> usersList = userRepository.findUserByLastNamePattern(username);
+        if(usersList != null){
+            List<FollowerDetailsDTO> followerDetailsDTOList = userMapper.EntityTOFollowerDetailsDTO(usersList);
+            searchResult.addAll(followerDetailsDTOList);
+        }
+        return searchResult;
+    }
+
+    @Override
+    public Boolean removeUser(String userEmail) {
+        postServiceProxy.removeUser(userEmail);
+        userServiceProxy.removeUser(userEmail);
+        Optional<User> byEmailEquals = userRepository.findByEmailEquals(userEmail);
+        if(byEmailEquals.isPresent()){
+            userRepository.deleteById(byEmailEquals.get().getUserid());
+        }
+        return true;
+    }
+
     @Override
     public UserByEmailDTO getUserById(String userId) {
         Optional<User> byId = userRepository.findById(userId);

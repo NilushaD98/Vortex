@@ -38,4 +38,6 @@ public interface PostService {
     Boolean deleteReplyComment(String replyCommentId);
 
     List<AllPostViewDTO> getAllHomePagePosts(String userEmail, int postPageIndex);
+
+    Boolean removeUserPosts(String userEmail);
 }

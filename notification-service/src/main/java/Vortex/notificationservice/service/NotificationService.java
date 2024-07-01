@@ -7,4 +7,7 @@ import java.util.List;
 public interface NotificationService {
     Boolean add(NotificationDTO notificationDTO);
     List<NotificationDTO> getAllNotification(String userEmail);
+
+    Boolean markAsRead(String notificationID);
+    Boolean deleteNotification(String notificationID);
 }

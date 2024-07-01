@@ -15,4 +15,6 @@ public interface PostRepository extends MongoRepository<Post,String> {
     Page<Post> findPostsByPostAuthorEmailEquals(String userProfileEmail, Pageable pageable);
 
     Page<Post> findPostsByPostAuthorEmailIn(List<String> followingUserEmailList, Pageable pageablePost);
+
+    void deleteAllByPostAuthorEmailEquals(String userEmail);
 }

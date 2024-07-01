@@ -308,6 +308,17 @@ public class PostServiceIMPL implements PostService {
             throw new InternalError("server error");
         }
     }
+
+    @Override
+    public Boolean removeUserPosts(String userEmail) {
+        postRepository.deleteAllByPostAuthorEmailEquals(userEmail);
+        commentRepository.deleteAllByCommentUserEmailEquals(userEmail);
+        likedLogRepository.deleteAllByAuthorEmailEquals(userEmail);
+        likedLogRepository.deleteAllByLikedUserEmail(userEmail);
+        replyCommentRepository.deleteAllByRepliedUserEmailEquals(userEmail);
+        return true;
+    }
+
     @Override
     public Boolean unlikePost(PostLikeDTO postLikeDTO) {
         if(likeRepository.findLikeByPostIdEquals(postLikeDTO.getPostID()).isPresent()){

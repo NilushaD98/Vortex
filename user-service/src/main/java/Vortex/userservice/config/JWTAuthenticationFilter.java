@@ -29,7 +29,8 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         if(
-                request.getServletPath().equals("/userservice/api/v1/user/initializeFollowingAndFollowersList")
+                request.getServletPath().equals("/userservice/api/v1/user/initializeFollowingAndFollowersList") ||
+                        request.getServletPath().equals("/userservice/api/v1/user/removeUser")
         ){
             filterChain.doFilter(request,response);
             return;

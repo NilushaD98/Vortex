@@ -36,4 +36,8 @@ public interface UserService {
     Boolean updateDeliveryDetails(AddDeliverDetailsDTO addDeliverDetailsDTO);
 
     AuthResponseDTO googleSignUp(GoogleSignUpDTO googleSignUpDTO);
+
+    List<FollowerDetailsDTO> searchUser(String username);
+
+    Boolean removeUser(String userEmail);
 }

@@ -63,4 +63,9 @@ public class UserController {
         );
     }
 
+    @DeleteMapping("removeUser")
+    public Boolean removeUser(@RequestParam("userEmail")String userEmail){
+        return userService.removeUser(userEmail);
+    }
+
 }

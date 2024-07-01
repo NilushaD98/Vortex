@@ -172,7 +172,6 @@ public class NotificationServiceIMPL implements NotificationService {
         for (Notification notification:notificationList){
             NotificationDTO notificationDTO = new NotificationDTO();
             if(notification.getNotificationType().equals("like")){
-                notificationDTO.setNotificationID(notification.getNotificationID());
                 notificationDTO.setNotificationType(notification.getNotificationType());
                 notificationDTO.setPostID(notification.getPostID());
                 notificationDTO.setReactedUserEmail(notification.getReactedUserEmail());
@@ -184,23 +183,37 @@ public class NotificationServiceIMPL implements NotificationService {
                 }else {
                     notificationDTO.setReactionMessage(" and "+(notification.getReactionCount()-1)+" others liked your post");
                 }
+                notificationDTO.setCommentedCount(0);
+                notificationDTO.setCommentMessage("");
+                notificationDTO.setFollowedUserEmail("");
+                notificationDTO.setFollowedUserName("");
+                notificationDTO.setFollowedUserProfilePictureURL("");
+                notificationDTO.setFollowedCount(0);
+                notificationDTO.setFollowingMessage("");
             }
             else if(notification.getNotificationType().equals("comment")){
-                notificationDTO.setNotificationID(notification.getNotificationID());
                 notificationDTO.setNotificationType(notification.getNotificationType());
                 notificationDTO.setPostID(notification.getPostID());
                 notificationDTO.setReactedUserEmail(notification.getReactedUserEmail());
                 notificationDTO.setReactedUserName(notification.getReactedUserName());
                 notificationDTO.setReactedUserProfilePictureURL(notification.getReactedUserProfilePictureURL());
+                notificationDTO.setReactionCount(0);
                 notificationDTO.setCommentedCount(notification.getCommentedCount());
                 if(notification.getCommentedCount() ==1){
                     notificationDTO.setCommentMessage(" commented your post.");
                 }else {
                     notificationDTO.setCommentMessage(" and "+(notification.getCommentedCount()-1) +" others commented your post");
                 }
+                notificationDTO.setReactionMessage("");
+                notificationDTO.setCommentMessage("");
+                notificationDTO.setFollowedUserEmail("");
+                notificationDTO.setFollowedUserName("");
+                notificationDTO.setFollowedUserProfilePictureURL("");
+                notificationDTO.setFollowedCount(0);
+                notificationDTO.setFollowingMessage("");
+
             }
             else if (notification.getNotificationType().equals("follow")){
-                notificationDTO.setNotificationID(notification.getNotificationID());
                 notificationDTO.setNotificationType(notification.getNotificationType());
                 notificationDTO.setFollowedUserEmail(notification.getReactedUserEmail());
                 notificationDTO.setFollowedUserName(notification.getReactedUserName());
@@ -211,11 +224,38 @@ public class NotificationServiceIMPL implements NotificationService {
                 }else{
                     notificationDTO.setFollowingMessage(" and "+ (notification.getReactionCount()-1) +" others followed you.");
                 }
+                notificationDTO.setPostID("");
+                notificationDTO.setReactedUserName("");
+                notificationDTO.setReactedUserEmail("");
+                notificationDTO.setReactedUserProfilePictureURL("");
+                notificationDTO.setReactionCount(0);
+                notificationDTO.setCommentedCount(0);
+                notificationDTO.setReactionMessage("");
+                notificationDTO.setCommentMessage("");
             }
+            notificationDTO.setNotificationID(notification.getNotificationID());
+            notificationDTO.setUserEmail(userEmail);
             notificationDTO.setReactedTime(formatToLocalTime(notification.getReactedTime()));
             notificationDTO.setReadStatus(notification.getReadStatus());
             notificationDTOList.add(notificationDTO);
         }
         return notificationDTOList;
+    }
+
+    @Override
+    public Boolean markAsRead(String notificationID) {
+        Optional<Notification> byId = notificationRepository.findById(notificationID);
+        byId.get().setReadStatus(true);
+        notificationRepository.save(byId.get());
+        return true;
+    }
+
+    @Override
+    public Boolean deleteNotification(String notificationID){
+        Optional<Notification> byId = notificationRepository.findById(notificationID);
+        if(byId.isPresent()){
+            notificationRepository.deleteById(notificationID);
+        }
+        return true;
     }
 }

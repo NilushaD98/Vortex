@@ -28,4 +28,16 @@ public class NotificationController {
                 new StandardResponse(200,"All Notifications ",notificationService.getAllNotification(userEmail)),HttpStatus.OK
         );
     }
+    @PutMapping("mark_as_read")
+    public ResponseEntity<StandardResponse> markAsRead(@RequestParam("notificationID")String notificationID){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Mark as Read Status : ",notificationService.markAsRead(notificationID)),HttpStatus.OK
+        );
+    }
+    @DeleteMapping("delete")
+    public ResponseEntity<StandardResponse> deleteNotification(@RequestParam("notificationID")String notificationID){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Delete Status : ",notificationService.deleteNotification(notificationID)),HttpStatus.OK
+        );
+    }
 }

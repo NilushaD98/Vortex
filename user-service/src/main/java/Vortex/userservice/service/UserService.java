@@ -21,4 +21,6 @@ public interface UserService {
     FollowingDTO getFollowingListForPostService(String email);
 
     Boolean initializeFollowingAndFollowersList(String userEmail);
+
+    Boolean removeUser(String userEmail);
 }

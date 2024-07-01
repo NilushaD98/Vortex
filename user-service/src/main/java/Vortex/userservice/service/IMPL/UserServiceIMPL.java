@@ -166,5 +166,12 @@ public class UserServiceIMPL implements UserService{
         followersRepository.save(byUserEmailEquals1);
         return true;
     }
+
+    @Override
+    public Boolean removeUser(String userEmail) {
+        followingRepository.deleteByUserEmailEquals(userEmail);
+        followersRepository.deleteByUserEmailEquals(userEmail);
+        return true;
+    }
 }
 

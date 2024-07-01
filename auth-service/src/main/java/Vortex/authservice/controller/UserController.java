@@ -131,4 +131,18 @@ public class UserController {
 //    @GetMapping("get_contact_info")
 //    @PreAuthorize("hasRole('USER')")
 //    public ResponseEntity<StandardResponse> getContactInfo(@RequestBody )
+
+    @GetMapping("search")
+    public ResponseEntity<StandardResponse> searchUser(@RequestParam("username") String username){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"User Search Result : ",userService.searchUser(username)),HttpStatus.OK
+        );
+    }
+
+    @DeleteMapping("remove_user")
+    public ResponseEntity<StandardResponse> deleteUser(@RequestParam("userEmail") String userEmail){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"User Removed Status : ", userService.removeUser(userEmail)),HttpStatus.OK
+        );
+    }
 }

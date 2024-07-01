@@ -17,4 +17,11 @@ public interface UserRepository extends MongoRepository<User,String> {
     Optional<User> findByEmailEquals(String email);
 
     List<User> findByEmailIn(List<String> followingUserEmailList);
+
+    @Query("{ 'firstName': { $regex: ?0, $options: 'i' } }")
+    List<User> findUserByFirstNamePattern(String username);
+
+    @Query("{ 'lastName': { $regex: ?0, $options: 'i' } }")
+    List<User> findUserByLastNamePattern(String username);
+
 }

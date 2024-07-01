@@ -25,15 +25,18 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
+        if(request.getServletPath().equals("/vortexpostservice/api/v1/admin/removeuser")){
+            filterChain.doFilter(request,response);
+        }else{
+            final String authHeader = request.getHeader("Authorization");
             final String jwt;
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 response.setStatus(401);
                 filterChain.doFilter(request, response);
             }
             jwt = authHeader.substring(7);
-        String user = jwtService.extractUsername(jwt);
-        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            String user = jwtService.extractUsername(jwt);
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 if (!jwtService.isTokenExpired(jwt)) {
                     log.error(jwt);
                     log.error(jwtService.extractAuthorities(jwt).toString());
@@ -49,5 +52,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
             filterChain.doFilter(request,response);
+        }
+
     }
 }

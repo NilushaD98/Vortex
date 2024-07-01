@@ -6,9 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/vortexpostservice/api/v1/admin/")
@@ -23,4 +22,9 @@ public class AdminController {
                 new StandardResponse(200,"All Reported Posts ;",postService.getAllReportedPosts()), HttpStatus.OK
         );
     }
+    @DeleteMapping("removeuser")
+    public Boolean removeUser(@RequestParam("userEmail")String userEmail){
+        return postService.removeUserPosts(userEmail);
+    }
+
 }

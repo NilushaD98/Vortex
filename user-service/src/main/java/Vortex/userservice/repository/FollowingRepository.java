@@ -10,4 +10,5 @@ public interface FollowingRepository extends MongoRepository<Following,String> {
 
     Following findByUserEmailEquals(String userEmail);
 
+    void deleteByUserEmailEquals(String userEmail);
 }

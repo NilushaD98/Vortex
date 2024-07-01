@@ -15,4 +15,6 @@ public interface CommentRepository extends MongoRepository<Comments,String> {
     void deleteByPostIdEquals(String postID);
 
     Optional<Comments> findCommentsByCommentIDEquals(String commentID);
+
+    void deleteAllByCommentUserEmailEquals(String userEmail);
 }

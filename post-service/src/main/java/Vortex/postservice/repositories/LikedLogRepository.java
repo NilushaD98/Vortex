@@ -8,4 +8,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface LikedLogRepository extends MongoRepository<LikedLog,String> {
     LikedLog findLikedLogByAuthorEmailEqualsAndLikedUserEmailEquals(String userProfileEmail, String viewedUserEmail);
+
+    void deleteAllByAuthorEmailEquals(String userEmail);
+
+    void deleteAllByLikedUserEmail(String userEmail);
 }
