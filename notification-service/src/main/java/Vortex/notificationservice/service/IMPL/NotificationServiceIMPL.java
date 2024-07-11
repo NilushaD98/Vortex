@@ -176,7 +176,11 @@ public class NotificationServiceIMPL implements NotificationService {
                 notificationDTO.setPostID(notification.getPostID());
                 notificationDTO.setReactedUserEmail(notification.getReactedUserEmail());
                 notificationDTO.setReactedUserName(notification.getReactedUserName());
-                notificationDTO.setReactedUserProfilePictureURL(notification.getReactedUserProfilePictureURL());
+                if(notification.getReactedUserProfilePictureURL() == null){
+                    notificationDTO.setReactedUserProfilePictureURL("");
+                }else {
+                    notificationDTO.setReactedUserProfilePictureURL(notification.getReactedUserProfilePictureURL());
+                }
                 notificationDTO.setReactionCount(notification.getReactionCount());
                 if(notification.getReactionCount() ==1){
                     notificationDTO.setReactionMessage(" liked your post.");
@@ -196,7 +200,11 @@ public class NotificationServiceIMPL implements NotificationService {
                 notificationDTO.setPostID(notification.getPostID());
                 notificationDTO.setReactedUserEmail(notification.getReactedUserEmail());
                 notificationDTO.setReactedUserName(notification.getReactedUserName());
-                notificationDTO.setReactedUserProfilePictureURL(notification.getReactedUserProfilePictureURL());
+                if(notification.getReactedUserProfilePictureURL() == null){
+                    notificationDTO.setReactedUserProfilePictureURL("");
+                }else {
+                    notificationDTO.setReactedUserProfilePictureURL(notification.getReactedUserProfilePictureURL());
+                }
                 notificationDTO.setReactionCount(0);
                 notificationDTO.setCommentedCount(notification.getCommentedCount());
                 if(notification.getCommentedCount() ==1){
@@ -217,7 +225,11 @@ public class NotificationServiceIMPL implements NotificationService {
                 notificationDTO.setNotificationType(notification.getNotificationType());
                 notificationDTO.setFollowedUserEmail(notification.getReactedUserEmail());
                 notificationDTO.setFollowedUserName(notification.getReactedUserName());
-                notificationDTO.setFollowedUserProfilePictureURL(notification.getReactedUserProfilePictureURL());
+                if(notification.getReactedUserProfilePictureURL() == null){
+                    notificationDTO.setReactedUserProfilePictureURL("");
+                }else {
+                    notificationDTO.setReactedUserProfilePictureURL(notification.getReactedUserProfilePictureURL());
+                }
                 notificationDTO.setFollowedCount(notification.getReactionCount());
                 if(notification.getReactionCount() ==1 ){
                     notificationDTO.setFollowingMessage(" followed you.");

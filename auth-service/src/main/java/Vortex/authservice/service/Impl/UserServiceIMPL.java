@@ -247,7 +247,7 @@ public class UserServiceIMPL implements UserService{
         Optional<User> user = userRepository.findByEmailEquals(email);
         if(user.isPresent()){
             UserDTO userDTO = userMapper.EntityToDTO(user.get());
-            if(userDTO.getBio().equals(null)){
+            if(userDTO.getBio() == null){
                 userDTO.setBio("");
             }
             return userDTO;
@@ -283,7 +283,7 @@ public class UserServiceIMPL implements UserService{
         Optional<User> user = userRepository.findByEmailEquals(userEmail);
         if(user.isPresent()){
             UserDTO userDTO = userMapper.EntityToDTO(user.get());
-            if(userDTO.getBio().equals(null)){
+            if(userDTO.getBio() == null){
                 userDTO.setBio("");
             }
             userDTO.setFollowedStatus(userLikedStatus);
