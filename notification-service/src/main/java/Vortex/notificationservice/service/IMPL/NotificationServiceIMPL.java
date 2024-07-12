@@ -226,9 +226,9 @@ public class NotificationServiceIMPL implements NotificationService {
                 notificationDTO.setFollowedUserEmail(notification.getReactedUserEmail());
                 notificationDTO.setFollowedUserName(notification.getReactedUserName());
                 if(notification.getReactedUserProfilePictureURL() == null){
-                    notificationDTO.setReactedUserProfilePictureURL("");
+                    notificationDTO.setFollowedUserProfilePictureURL("");
                 }else {
-                    notificationDTO.setReactedUserProfilePictureURL(notification.getReactedUserProfilePictureURL());
+                    notificationDTO.setFollowedUserProfilePictureURL(notification.getReactedUserProfilePictureURL());
                 }
                 notificationDTO.setFollowedCount(notification.getReactionCount());
                 if(notification.getReactionCount() ==1 ){
