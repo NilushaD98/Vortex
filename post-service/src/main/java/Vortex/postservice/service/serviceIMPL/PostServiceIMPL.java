@@ -33,6 +33,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import static org.springframework.util.ClassUtils.isPresent;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -114,7 +116,9 @@ public class PostServiceIMPL implements PostService {
             Optional<Post> byId = postRepository.findById(postLikeDTO.getPostID());
             byId.get().setLikeCount(byId.get().getLikeCount()+1);
             postRepository.save(byId.get());
-            kafkaTemplate.send("like",postLikeDTO);
+            if(!postLikeDTO.getLikedUserEmail().equals(postLikeDTO.getPostAuthorEmail())){
+                kafkaTemplate.send("like",postLikeDTO);
+            }
             return "success";
         }catch (Exception e){
             log.error(e.getMessage());
@@ -343,7 +347,8 @@ public class PostServiceIMPL implements PostService {
 
     @Override
     public Boolean addComment(AddCommentDTO addCommentDTO) {
-        if(postRepository.findById(addCommentDTO.getPostID()).isPresent()){
+        Optional<Post> byId = postRepository.findById(addCommentDTO.getPostID());
+        if(byId.isPresent()){
             Comments comments = new Comments(
                     addCommentDTO.getPostID(),
                     addCommentDTO.getComment(),
@@ -351,7 +356,9 @@ public class PostServiceIMPL implements PostService {
 
             );
             commentRepository.save(comments);
-            kafkaTemplate.send("comment",addCommentDTO);
+            if(!byId.get().getPostAuthorEmail().equals(addCommentDTO.getCommentUserEmail())){
+                kafkaTemplate.send("comment",addCommentDTO);
+            }
             return true;
         }else {
             throw new PostNotFoundException();
@@ -477,6 +484,7 @@ public class PostServiceIMPL implements PostService {
         List<Comments> byPostIdEquals = commentRepository.findByPostIdEquals(postID);
         String authorizedUser = authorizedUserService.getAuthorizedUser();
         for(Comments comments : byPostIdEquals){
+                int count = replyCommentRepository.countByMainCommentIDEquals(comments.getCommentID());
                 UserByEmailDTO userByEmailDTO = authServiceProxy.getUser(comments.getCommentUserEmail());
                 ViewCommentDTO viewCommentDTO = new ViewCommentDTO();
                 viewCommentDTO.setCommentID(comments.getCommentID());
@@ -485,6 +493,11 @@ public class PostServiceIMPL implements PostService {
                 viewCommentDTO.setCommentedUserProfilePictureURL(userByEmailDTO.getProfilePhotoURL());
                 viewCommentDTO.setComment(comments.getComment());
                 viewCommentDTO.setCommentLikeCount(comments.getCommentLikeCount());
+                if(count>0){
+                    viewCommentDTO.setReplyCommentCount(count);
+                }else {
+                    viewCommentDTO.setReplyCommentCount(0);
+                }
             if(comments.getLikedUserList() != null){
                 viewCommentDTO.setLikedUsersList(authServiceProxy.getFollowingDataList(comments.getLikedUserList()));
                 if(comments.getLikedUserList().contains(authorizedUser)){

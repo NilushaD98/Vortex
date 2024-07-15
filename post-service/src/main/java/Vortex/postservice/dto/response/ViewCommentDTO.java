@@ -18,6 +18,7 @@ public class ViewCommentDTO {
     private String commentedUserProfilePictureURL;
     private String comment;
     private int commentLikeCount;
+    private int replyCommentCount;
     private List<UserByEmailDTO> likedUsersList;
     private Boolean userLikedStatus;
     
