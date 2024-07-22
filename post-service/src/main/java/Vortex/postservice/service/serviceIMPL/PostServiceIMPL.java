@@ -435,14 +435,16 @@ public class PostServiceIMPL implements PostService {
                 viewReplyCommentDTO.setRepliedUserName((data.getFirstName()+" "+data.getLastName()));
                 viewReplyCommentDTO.setRepliedUserProfilePictureURL(data.getProfilePhotoURL());
                 viewReplyCommentDTO.setMainCommentID(replyComment.getMainCommentID());
+                viewReplyCommentDTO.setUserLikedStatus(false);
                 if(replyComment.getLikedCount() != 0){
                     viewReplyCommentDTO.setLikedCount(replyComment.getLikedCount());
                     viewReplyCommentDTO.setLikedUsersList(authServiceProxy.getFollowingDataList(replyComment.getLikedUserEmailList()));
-                    if(replyComment.getLikedUserEmailList().contains(authorizedUser)){
+                    if(replyComment.getLikedUserEmailList().contains(authorizedUser)) {
                         viewReplyCommentDTO.setUserLikedStatus(true);
-                    }else {
-                        viewReplyCommentDTO.setUserLikedStatus(false);
                     }
+                }else {
+                    viewReplyCommentDTO.setLikedCount(0);
+                    viewReplyCommentDTO.setLikedUsersList(new ArrayList<>());
                 }
                 viewReplyCommentDTO.setLikedCount(replyComment.getLikedCount());
                 viewReplyCommentDTOList.add(viewReplyCommentDTO);
@@ -493,18 +495,21 @@ public class PostServiceIMPL implements PostService {
                 viewCommentDTO.setCommentedUserProfilePictureURL(userByEmailDTO.getProfilePhotoURL());
                 viewCommentDTO.setComment(comments.getComment());
                 viewCommentDTO.setCommentLikeCount(comments.getCommentLikeCount());
-                if(count>0){
+                viewCommentDTO.setUserLikedStatus(false);
+            if(count>0){
                     viewCommentDTO.setReplyCommentCount(count);
+                    viewCommentDTO.setViewReplyCommentDTOList(getAllReplyComments(comments.getCommentID()));
                 }else {
                     viewCommentDTO.setReplyCommentCount(0);
+                    viewCommentDTO.setViewReplyCommentDTOList(new ArrayList<>());
                 }
             if(comments.getLikedUserList() != null){
                 viewCommentDTO.setLikedUsersList(authServiceProxy.getFollowingDataList(comments.getLikedUserList()));
                 if(comments.getLikedUserList().contains(authorizedUser)){
                     viewCommentDTO.setUserLikedStatus(true);
-                }else {
-                    viewCommentDTO.setUserLikedStatus(false);
                 }
+            }else{
+                viewCommentDTO.setLikedUsersList(new ArrayList<>());
             }
                 viewCommentDTOList.add(viewCommentDTO);
             }
