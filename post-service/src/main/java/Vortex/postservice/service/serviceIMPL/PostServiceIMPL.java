@@ -498,7 +498,7 @@ public class PostServiceIMPL implements PostService {
                 viewCommentDTO.setUserLikedStatus(false);
             if(count>0){
                     viewCommentDTO.setReplyCommentCount(count);
-                    viewCommentDTO.setViewReplyCommentDTOList(getAllReplyComments(comments.getCommentID()));
+                    viewCommentDTO.setViewReplyCommentDTOList(Collections.singletonList(getAllReplyComments(comments.getCommentID())));
                 }else {
                     viewCommentDTO.setReplyCommentCount(0);
                     viewCommentDTO.setViewReplyCommentDTOList(new ArrayList<>());
