@@ -1,5 +1,6 @@
 package Vortex.postservice.service;
 
+import Vortex.postservice.dto.CommentsDTO;
 import Vortex.postservice.dto.request.*;
 import Vortex.postservice.dto.response.*;
 
@@ -19,7 +20,7 @@ public interface PostService {
     Boolean addComment(AddCommentDTO addCommentDTO);
     Boolean deleteComment(DeleteCommentDTO deleteCommentDTO);
 
-    List<ViewCommentDTO> getAllComments(String postID);
+    CommentsDTO getAllComments(String postID);
 
     List<UserByEmailDTO> getAllLikelist(String postID);
 

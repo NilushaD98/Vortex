@@ -21,6 +21,5 @@ public class ViewCommentDTO {
     private int replyCommentCount;
     private List<UserByEmailDTO> likedUsersList;
     private Boolean userLikedStatus;
-    private List<List<ViewReplyCommentDTO>> viewReplyCommentDTOList;
     
 }

@@ -1,6 +1,7 @@
 package Vortex.postservice.service.serviceIMPL;
 
 import Vortex.postservice.collection.*;
+import Vortex.postservice.dto.CommentsDTO;
 import Vortex.postservice.dto.request.*;
 import Vortex.postservice.dto.response.*;
 import Vortex.postservice.exception.CommentNotFoundException;
@@ -481,8 +482,10 @@ public class PostServiceIMPL implements PostService {
         }
     }
     @Override
-    public List<ViewCommentDTO> getAllComments(String postID ) {
+    public CommentsDTO getAllComments(String postID ) {
+        CommentsDTO commentsDTO = new CommentsDTO();
         List<ViewCommentDTO> viewCommentDTOList = new ArrayList<>();
+        List<List<ViewReplyCommentDTO>> viewReplyCommentDTOList = new ArrayList<>();
         List<Comments> byPostIdEquals = commentRepository.findByPostIdEquals(postID);
         String authorizedUser = authorizedUserService.getAuthorizedUser();
         for(Comments comments : byPostIdEquals){
@@ -498,10 +501,11 @@ public class PostServiceIMPL implements PostService {
                 viewCommentDTO.setUserLikedStatus(false);
             if(count>0){
                     viewCommentDTO.setReplyCommentCount(count);
-                    viewCommentDTO.setViewReplyCommentDTOList(Collections.singletonList(getAllReplyComments(comments.getCommentID())));
-                }else {
+                List<ViewReplyCommentDTO> allReplyComments = getAllReplyComments(comments.getCommentID());
+                viewReplyCommentDTOList.add(allReplyComments);
+            }else {
                     viewCommentDTO.setReplyCommentCount(0);
-                    viewCommentDTO.setViewReplyCommentDTOList(new ArrayList<>());
+                    viewReplyCommentDTOList.add(new ArrayList<>());
                 }
             if(comments.getLikedUserList() != null){
                 viewCommentDTO.setLikedUsersList(authServiceProxy.getFollowingDataList(comments.getLikedUserList()));
@@ -513,7 +517,9 @@ public class PostServiceIMPL implements PostService {
             }
                 viewCommentDTOList.add(viewCommentDTO);
             }
-            return viewCommentDTOList;
+            commentsDTO.setMainComments(viewCommentDTOList);
+            commentsDTO.setRepliesComment(viewReplyCommentDTOList);
+            return commentsDTO;
     }
     @Override
     public List<UserByEmailDTO> getAllLikelist(String postID) {
