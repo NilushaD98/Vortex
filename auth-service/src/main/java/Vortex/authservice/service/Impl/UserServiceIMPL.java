@@ -266,6 +266,7 @@ public class UserServiceIMPL implements UserService{
             updateUserEntity.setContact(userDTO.getContact());
             updateUserEntity.setCountry(userDTO.getCountry());
             updateUserEntity.setBio(userDTO.getBio());
+            updateUserEntity.setProfilePhotoURL(userDTO.getProfilePhotoURL());
             userRepository.save(updateUserEntity);
             return true;
         }else {
