@@ -18,4 +18,6 @@ public class FollowerDetailsDTO {
     private String lastName;
     private String email;
     private String profilePhotoURL;
+    private String country;
+
 }

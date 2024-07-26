@@ -357,6 +357,8 @@ public class PostServiceIMPL implements PostService {
 
             );
             commentRepository.save(comments);
+            byId.get().setCommentCount(byId.get().getCommentCount()+1);
+            postRepository.save(byId.get());
             if(!byId.get().getPostAuthorEmail().equals(addCommentDTO.getCommentUserEmail())){
                 kafkaTemplate.send("comment",addCommentDTO);
             }
@@ -376,6 +378,7 @@ public class PostServiceIMPL implements PostService {
                     replyCommentDTO.getMainCommentID()
             );
             replyCommentRepository.save(replyComment);
+            commentRepository.save(byId.get());
             if(byId.get().getReplyCommentsIDList() == null){
                 byId.get().setReplyCommentsIDList(List.of(replyComment.getRepliedCommentID()));
             }else {
@@ -509,6 +512,7 @@ public class PostServiceIMPL implements PostService {
                 }
             if(comments.getLikedUserList() != null){
                 viewCommentDTO.setLikedUsersList(authServiceProxy.getFollowingDataList(comments.getLikedUserList()));
+                log.info(viewCommentDTO.getLikedUsersList().toString());
                 if(comments.getLikedUserList().contains(authorizedUser)){
                     viewCommentDTO.setUserLikedStatus(true);
                 }
