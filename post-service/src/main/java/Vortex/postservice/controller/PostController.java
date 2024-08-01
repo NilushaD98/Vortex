@@ -92,7 +92,14 @@ public class PostController {
     }
     @DeleteMapping("delete_comment")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<StandardResponse> deleteComment(@RequestBody DeleteCommentDTO deleteCommentDTO){
+    public ResponseEntity<StandardResponse> deleteComment(
+            @RequestParam("commentID") String commentID,
+            @RequestParam("authorEmail") String authorEmail
+    ){
+        DeleteCommentDTO deleteCommentDTO = new DeleteCommentDTO(
+                commentID,
+                authorEmail
+        );
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"Comment Delete Status ",postService.deleteComment(deleteCommentDTO)),HttpStatus.OK
         );
