@@ -475,6 +475,8 @@ public class PostServiceIMPL implements PostService {
     public Boolean deleteComment(DeleteCommentDTO deleteCommentDTO){
         Optional<Comments> commentsById=commentRepository.findCommentsByCommentIDEquals(deleteCommentDTO.getCommentID());
         if(commentsById.isPresent() && deleteCommentDTO.getAuthorEmail().equals(commentsById.get().getCommentUserEmail())){
+            Optional<Post> byId = postRepository.findById(commentsById.get().getPostId());
+            byId.get().setCommentCount(byId.get().getCommentCount()-1);
             if(commentsById.get().getReplyCommentsIDList() != null){
                 replyCommentRepository.deleteAllById(commentsById.get().getReplyCommentsIDList());
             }
