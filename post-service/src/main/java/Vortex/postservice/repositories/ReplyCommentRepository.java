@@ -13,4 +13,6 @@ public interface ReplyCommentRepository extends MongoRepository<ReplyComment,Str
     void deleteAllByRepliedUserEmailEquals(String userEmail);
 
     int countByMainCommentIDEquals(String commentID);
+
+    void deleteAllByMainCommentIDEquals(String commentID);
 }

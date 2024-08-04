@@ -325,6 +325,45 @@ public class PostServiceIMPL implements PostService {
     }
 
     @Override
+    public Boolean deleteReportedPost(String postID) {
+        try{
+            Optional<Post> byId = postRepository.findById(postID);
+            List<Comments> byPostIdEquals = commentRepository.findByPostIdEquals(postID);
+            byPostIdEquals.forEach(
+                    comment ->{
+                        replyCommentRepository.deleteAllByMainCommentIDEquals(comment.getCommentID());
+                        commentRepository.deleteById(comment.getCommentID());
+                    }
+            );
+            Optional<Like> likeByPostIdEquals = likeRepository.findLikeByPostIdEquals(postID);
+            likeByPostIdEquals.get().getLikedEmailList().forEach(
+                    email -> {
+                        LikedLog likedLogByAuthorEmailEqualsAndLikedUserEmailEquals = likedLogRepository.findLikedLogByAuthorEmailEqualsAndLikedUserEmailEquals(byId.get().getPostAuthorEmail(), email);
+                        likedLogByAuthorEmailEqualsAndLikedUserEmailEquals.getLikedPostList().remove(postID);
+                        likedLogRepository.save(likedLogByAuthorEmailEqualsAndLikedUserEmailEquals);
+                    }
+            );
+            likeRepository.deleteByPostIdEquals(postID);
+            postRepository.deleteById(postID);
+            return true;
+        }catch (Exception e){
+            log.error(e.getMessage());
+            return  false;
+        }
+    }
+
+    @Override
+    public Boolean keepIt(String postID) {
+        try {
+            reportedPostRepository.deleteReportedPostByPostIDEquals(postID);
+            return true;
+        }catch (Exception e){
+            log.error(e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
     public Boolean unlikePost(PostLikeDTO postLikeDTO) {
         if(likeRepository.findLikeByPostIdEquals(postLikeDTO.getPostID()).isPresent()){
             return likeUnlikeCommon(postLikeDTO,"$pull");

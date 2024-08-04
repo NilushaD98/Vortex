@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ReportedPostRepository extends MongoRepository<ReportedPost,String> {
+    void deleteReportedPostByPostIDEquals(String postID);
 }

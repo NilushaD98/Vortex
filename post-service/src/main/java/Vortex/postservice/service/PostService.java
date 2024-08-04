@@ -41,4 +41,8 @@ public interface PostService {
     List<AllPostViewDTO> getAllHomePagePosts(String userEmail, int postPageIndex);
 
     Boolean removeUserPosts(String userEmail);
+
+    Boolean deleteReportedPost(String postID);
+
+    Boolean keepIt(String postID);
 }
