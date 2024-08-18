@@ -183,7 +183,7 @@ public class UserServiceIMPL implements UserService{
     @Override
     public OtpResponse sendOtpToEmail(String email) {
         int otp = generateRandomOTP();
-        boolean vortexOtp = mailSender(email, "Vortex OTP", "V - " + Integer.toString(otp)+"If you didn't request this, simply ignore this message.\n" +
+        boolean vortexOtp = mailSender(email, "Vortex OTP", "V - " + Integer.toString(otp)+". If you didn't request this, simply ignore this message.\n" +
                 "\n" +
                 "Yours,\n" +
                 "The Vortex Team");
