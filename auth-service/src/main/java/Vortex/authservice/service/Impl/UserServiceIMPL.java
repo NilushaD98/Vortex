@@ -84,15 +84,18 @@ public class UserServiceIMPL implements UserService{
         String uuid = UUID.randomUUID().toString().replace("-", "");
         String customPassword = uuid.substring(0, Math.min(8, uuid.length()));
         Optional<User> byEmailEquals = userRepository.findByEmailEquals(googleSignUpDTO.getEmail());
+        Date date = new Date(0);
         if (byEmailEquals.isEmpty()){
-            User user = new User(
-                    googleSignUpDTO.getFirstName(),
-                    googleSignUpDTO.getLastName(),
-                    googleSignUpDTO.getEmail(),
-                    passwordEncoder.encode(customPassword),
-                    googleSignUpDTO.getProfilePhotoURL(),
-                    USER
-            );
+            User user = new User();
+            user.setFirstName(googleSignUpDTO.getFirstName());
+            user.setLastName(googleSignUpDTO.getLastName());
+            user.setBirthDay(date);
+            user.setEmail(googleSignUpDTO.getEmail());
+            user.setContact("0700000000");
+            user.setCountry("country");
+            user.setPassword(passwordEncoder.encode(customPassword));
+            user.setProfilePhotoURL(googleSignUpDTO.getProfilePhotoURL());
+            user.setRole(USER);
             userRepository.save(user);
             userServiceProxy.initializeFollowingAndFollowersLis(googleSignUpDTO.getEmail());
         }else {
