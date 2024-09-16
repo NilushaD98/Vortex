@@ -21,7 +21,7 @@ public interface UserService {
 
     boolean checkOTP(CheckOTPDTO checkOTPDTO);
 
-    AuthResponseDTO sellerSignUp(SellerSignUpDTO sellerSignUpDTO);
+    Boolean sellerSignUp(SellerSignUpDTO sellerSignUpDTO);
 
     List<FollowerDetailsDTO> getFollowingDataList(List<String> followingUserEmailList);
 

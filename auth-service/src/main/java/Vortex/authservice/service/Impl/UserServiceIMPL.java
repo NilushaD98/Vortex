@@ -32,6 +32,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -40,6 +41,7 @@ import static Vortex.authservice.enums.Roles.USER;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class UserServiceIMPL implements UserService{
 
     private final UserRepository userRepository;
@@ -211,30 +213,23 @@ public class UserServiceIMPL implements UserService{
         }
     }
     @Override
-    public AuthResponseDTO sellerSignUp(SellerSignUpDTO sellerSignUpDTO) {
+    public Boolean sellerSignUp(SellerSignUpDTO sellerSignUpDTO) {
         Optional<User> byEmailEquals = userRepository.findByEmailEquals(sellerSignUpDTO.getEmail());
         if(byEmailEquals.isPresent()){
-            throw new UserAlreadyReportedException();
-        }else {
-            User user = new User(
-                sellerSignUpDTO.getFirstName(),
-                    sellerSignUpDTO.getLastName(),
-                    null,
-                    sellerSignUpDTO.getEmail(),
-                    sellerSignUpDTO.getContact(),
-                    sellerSignUpDTO.getCountry(),
-                    passwordEncoder.encode(sellerSignUpDTO.getPassword()),
-                    Roles.SELLER
-            );
-            userRepository.save(user);
+            byEmailEquals.get().setRole(Roles.SELLER);
+            userRepository.save(byEmailEquals.get());
             SellerDetails sellerDetails = new SellerDetails(
-                    user.getUserid(),
+                    byEmailEquals.get().getUserid(),
                     sellerSignUpDTO.getNic(),
                     sellerSignUpDTO.getMetaMaskID(),
-                    sellerSignUpDTO.getAddress()
+                    sellerSignUpDTO.getAddress(),
+                    sellerSignUpDTO.getDescription(),
+                    sellerSignUpDTO.getBrandBanner()
             );
             sellerDetailsRepository.save(sellerDetails);
-            return authService.authenticate(new DefaultAuthenticationDTO(sellerSignUpDTO.getEmail(),sellerSignUpDTO.getPassword()));
+            return true;
+        }else {
+            throw new UserNotFoundException();
         }
     }
     @Override

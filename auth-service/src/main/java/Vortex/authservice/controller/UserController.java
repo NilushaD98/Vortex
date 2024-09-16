@@ -38,11 +38,11 @@ public class UserController {
                 new StandardResponse(200,"Auth Response",userService.googleSignUp(googleSignUpDTO)),HttpStatus.OK
         );
     }
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("seller_sign_up")
     public ResponseEntity<StandardResponse> sellerSignUp(@RequestBody SellerSignUpDTO sellerSignUpDTO){
-        AuthResponseDTO authResponseDTO = userService.sellerSignUp(sellerSignUpDTO);
         return new ResponseEntity<StandardResponse>(
-                new StandardResponse(201,"Seller Sign Up Status : ",authResponseDTO),HttpStatus.OK
+                new StandardResponse(201,"Seller Sign Up Status : ",userService.sellerSignUp(sellerSignUpDTO)),HttpStatus.OK
         );
     }
     @GetMapping("find_account_by_email")

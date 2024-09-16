@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.2.3</version>
-		<relativePath></relativePath> <!-- lookup parent from repository -->
+		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>Vortex</groupId>
 	<artifactId>Parent</artifactId>
@@ -23,6 +23,7 @@
 		<module>notification-service</module>
 		<module>post-service</module>
 		<module>admin-service</module>
+		<module>marketplace-service</module>
 	</modules>
 	<build>
 		<plugins>
