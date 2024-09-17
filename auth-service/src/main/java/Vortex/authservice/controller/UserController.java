@@ -38,7 +38,6 @@ public class UserController {
                 new StandardResponse(200,"Auth Response",userService.googleSignUp(googleSignUpDTO)),HttpStatus.OK
         );
     }
-    @PreAuthorize("hasRole('USER')")
     @PostMapping("seller_sign_up")
     public ResponseEntity<StandardResponse> sellerSignUp(@RequestBody SellerSignUpDTO sellerSignUpDTO){
         return new ResponseEntity<StandardResponse>(
@@ -63,7 +62,6 @@ public class UserController {
     public UserByEmailDTO getUserByIdForPostService(@RequestParam("user_id") String user_id){
         return userService.getUserbyEmail(user_id);
     }
-    @PreAuthorize("hasRole('USER')")
     @PostMapping("update_user_public_details")
     public ResponseEntity<StandardResponse> userBioAndProfilePictureUpdate(@RequestBody UpdateUserPublicDetailsDTO updateUserPublicDetailsDTO){
         String updateStatus = userService.updateUserDetails(updateUserPublicDetailsDTO);
@@ -72,7 +70,6 @@ public class UserController {
         );
     }
     @GetMapping("send_otp_for_two_step_verification")
-    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> sendOTPtoEmail(@RequestParam("email")String email){
         OtpResponse otpResponse = userService.sendOtpToEmail(email);
         return new ResponseEntity<StandardResponse>(
@@ -80,7 +77,6 @@ public class UserController {
         );
     }
     @PostMapping("check_otp_for_two_step_verification")
-    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> checkOTP(@RequestBody CheckOTPDTO checkOTPDTO){
         boolean otpCheckStatus = userService.checkOTP(checkOTPDTO);
         return new ResponseEntity<StandardResponse>(
@@ -98,21 +94,19 @@ public class UserController {
         return userService.getFollowersDataList(followersUserEmailList);
     }
     @GetMapping("user_by_email")
-    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> userByEmail(@RequestParam("email")String email){
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"User by Email : ",userService.userByEmail(email)),HttpStatus.OK
         );
     }
     @PutMapping("update_user_profile")
-    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> updateUser(@RequestBody UserDTO userDTO){
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"User Update Status ",userService.userUpdate(userDTO)),HttpStatus.OK
         );
     }
     @GetMapping("view_another_user_profile")
-    @PreAuthorize("hasRole('USER')")
+
     public ResponseEntity<StandardResponse> viewAnotherUser(
             @RequestParam("viewUserEmail") String viewUserEmail,
             @RequestParam("userEmail") String userEmail
@@ -122,7 +116,6 @@ public class UserController {
         );
     }
     @PutMapping("update_delivery_details")
-    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<StandardResponse> updateDeliveryDetails(@RequestBody AddDeliverDetailsDTO addDeliverDetailsDTO){
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"Delivery Details Update Status: ",userService.updateDeliveryDetails(addDeliverDetailsDTO)),HttpStatus.OK

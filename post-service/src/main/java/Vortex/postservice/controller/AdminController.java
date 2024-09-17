@@ -15,21 +15,21 @@ public class AdminController {
 
     private final PostService postService;
 
-    @PreAuthorize("hasRole('ADMIN')")
+
     @PostMapping("get_all_reported_posts")
     public ResponseEntity<StandardResponse> getAllReportedPosts(){
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"All Reported Posts ;",postService.getAllReportedPosts()), HttpStatus.OK
         );
     }
-    @PreAuthorize("hasRole('ADMIN')")
+
     @DeleteMapping("delete_reported_post")
     public ResponseEntity<StandardResponse> deleteReportedPost(@RequestParam("postID")String postID){
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"Post Deleted Status",postService.deleteReportedPost(postID)),HttpStatus.OK
         );
     }
-    @PreAuthorize("hasRole('ADMIN')")
+
     @DeleteMapping("keep_it")
     public ResponseEntity<StandardResponse> keepIt(@RequestParam("postID")String postID){
         return new ResponseEntity<StandardResponse>(
