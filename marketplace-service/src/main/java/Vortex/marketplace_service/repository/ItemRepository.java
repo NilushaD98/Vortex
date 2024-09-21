@@ -12,4 +12,6 @@ public interface ItemRepository extends MongoRepository<Item,String> {
     List<Item> getAllByItemStatusEquals(ItemStatus itemStatus);
 
     List<Item> getAllBySellerIDEquals(String sellerID);
+
+//    List<Item> getAllByItemStatusEquals(ItemStatus itemStatus);
 }

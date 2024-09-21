@@ -91,4 +91,11 @@ public class ItemServiceIMPL implements ItemService {
         List<Item> itemList = itemRepository.getAllBySellerIDEquals(sellerID);
         return itemMapper.entityListToDTOList(itemList);
     }
+
+    @Override
+    public List<AddItemDTO> getAllUnPublishItems() {
+
+        List<Item> itemList = itemRepository.getAllByItemStatusEquals(ItemStatus.DISABLED);
+        return itemMapper.entityListToDTOList(itemList);
+    }
 }

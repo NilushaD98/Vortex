@@ -46,4 +46,10 @@ public class ItemController {
                 new StandardResponse(200,"All Seller's Item : ",itemService.getAllItemBySellerID(sellerID)),HttpStatus.OK
         );
     }
+    @GetMapping("getAllUnPublishItems")
+    public ResponseEntity<StandardResponse> getAllUnPublishItems(){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"",itemService.getAllUnPublishItems()),HttpStatus.OK
+        );
+    }
 }
