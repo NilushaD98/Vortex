@@ -73,6 +73,7 @@ public class ItemServiceIMPL implements ItemService {
             item.setItemImageURL(addItemDTO.getItemImageURL());
             item.setPrice(addItemDTO.getPrice());
             item.setQuantity(addItemDTO.getQuantity());
+            itemRepository.save(item);
             return true;
         }catch (Exception e){
             log.error(e.getMessage());
