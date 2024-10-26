@@ -9,13 +9,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Setter
 @Getter
-public class OrderDTO {
+public class RateOrderDTO {
 
-    private String itemID;
-    private int quantity;
-    private String buyerID;
-    private String sellerID;
-    private String buyerWalletID;
-    private String address;
-
+    private String orderID;
+    private int rate;
+    private String rateMessage;
 }

@@ -9,13 +9,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Setter
 @Getter
-public class OrderDTO {
+public class PaySecondPaymentDTO {
 
-    private String itemID;
-    private int quantity;
-    private String buyerID;
-    private String sellerID;
-    private String buyerWalletID;
-    private String address;
-
+    private String orderID;//get from qr scanning
 }

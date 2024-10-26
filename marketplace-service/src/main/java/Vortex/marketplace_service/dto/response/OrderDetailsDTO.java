@@ -26,5 +26,6 @@ public class OrderDetailsDTO {
     private String buyerWalletID;
     private String sellerWalletID;
     private OrderStatus orderStatus;
-
+    private int rate;
+    private String rateMessage;
 }

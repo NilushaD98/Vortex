@@ -2,11 +2,14 @@ package Vortex.authservice.util.mappers;
 
 import Vortex.authservice.dto.UserDTO;
 import Vortex.authservice.dto.request.FollowerDetailsDTO;
+import Vortex.authservice.dto.response.SellerDetailsDTO;
+import Vortex.authservice.entity.SellerDetails;
 import Vortex.authservice.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.util.List;
+import java.util.Optional;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -14,4 +17,6 @@ public interface UserMapper {
     List<FollowerDetailsDTO> EntityTOFollowerDetailsDTO(List<User> byEmailIn);
 
     UserDTO EntityToDTO(User user);
+
+    SellerDetailsDTO sellerDetailsEntityToDTO(SellerDetails sellerDetails);
 }

@@ -32,7 +32,9 @@ public class SecurityConfiguration {
             "/vortexcoreservice/api/v1/user/get_followers_data_list",
             "/vortexcoreservice/api/v1/user/google_sign_up",
             "/vortexcoreservice/api/v1/user/seller_sign_up",
-            "/vortexcoreservice/api/v1/user/remove_user"
+            "/vortexcoreservice/api/v1/user/remove_user",
+            "/vortexcoreservice/api/v1/user/getSellerDetails"
+
     };
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {

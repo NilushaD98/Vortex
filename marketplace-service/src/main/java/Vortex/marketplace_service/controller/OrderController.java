@@ -1,17 +1,15 @@
 package Vortex.marketplace_service.controller;
 
+import Vortex.marketplace_service.dto.request.RateOrderDTO;
 import Vortex.marketplace_service.service.OrderService;
 import Vortex.marketplace_service.util.StandardResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/marketplaceservice/api/v1/purchase/")
+@RequestMapping("/marketplaceservice/api/v1/order/")
 @RequiredArgsConstructor
 public class OrderController {
 
@@ -28,6 +26,13 @@ public class OrderController {
     public ResponseEntity<StandardResponse> getAllOrdersBySellerID(@RequestParam("sellerID")String sellerID){
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"All Orders By Seller ID: ",orderService.getAllOrdersBySellerID(sellerID)),HttpStatus.OK
+        );
+    }
+
+    @PostMapping("rateOrder")
+    public ResponseEntity<StandardResponse> rateOrder(@RequestBody RateOrderDTO rateOrderDTO){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Rate Order Status",orderService.rateOrder(rateOrderDTO)),HttpStatus.OK
         );
     }
 }

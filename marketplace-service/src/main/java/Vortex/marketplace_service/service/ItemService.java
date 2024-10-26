@@ -1,6 +1,7 @@
 package Vortex.marketplace_service.service;
 
 import Vortex.marketplace_service.dto.request.AddItemDTO;
+import Vortex.marketplace_service.dto.response.AllItemReviewDTO;
 
 import java.util.List;
 
@@ -18,4 +19,6 @@ public interface ItemService {
     List<AddItemDTO> getAllUnPublishItems();
 
     AddItemDTO getItemById(String itemID);
+
+    AllItemReviewDTO getRatingsByItemID(String itemID);
 }

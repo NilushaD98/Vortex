@@ -59,4 +59,10 @@ public class ItemController {
                 new StandardResponse(200,"Item By ID",itemService.getItemById(itemID)),HttpStatus.OK
         );
     }
+    @GetMapping("getRatingsByItemID")
+    public ResponseEntity<StandardResponse> getRatingsByItemID(@RequestParam("itemID")String itemID){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Item Reviews : ",itemService.getRatingsByItemID(itemID)),HttpStatus.OK
+        );
+    }
 }

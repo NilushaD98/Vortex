@@ -4,6 +4,7 @@ import Vortex.authservice.dto.UserDTO;
 import Vortex.authservice.dto.request.*;
 import Vortex.authservice.dto.response.AuthResponseDTO;
 import Vortex.authservice.dto.response.OtpResponse;
+import Vortex.authservice.dto.response.SellerDetailsDTO;
 import Vortex.authservice.dto.response.UserByEmailDTO;
 
 import java.util.List;
@@ -40,4 +41,6 @@ public interface UserService {
     List<FollowerDetailsDTO> searchUser(String username);
 
     Boolean removeUser(String userEmail);
+
+    SellerDetailsDTO getSellerDetails(String sellerID);
 }

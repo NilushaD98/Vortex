@@ -4,6 +4,7 @@ import Vortex.authservice.dto.UserDTO;
 import Vortex.authservice.dto.request.*;
 import Vortex.authservice.dto.response.AuthResponseDTO;
 import Vortex.authservice.dto.response.OtpResponse;
+import Vortex.authservice.dto.response.SellerDetailsDTO;
 import Vortex.authservice.dto.response.UserByEmailDTO;
 import Vortex.authservice.entity.OTP;
 import Vortex.authservice.entity.SellerDetails;
@@ -134,6 +135,18 @@ public class UserServiceIMPL implements UserService{
             userRepository.deleteById(byEmailEquals.get().getUserid());
         }
         return true;
+    }
+
+    @Override
+    public SellerDetailsDTO getSellerDetails(String sellerID) {
+        try {
+            Optional<User> byEmailEquals = userRepository.findByEmailEquals(sellerID);
+            Optional<SellerDetails> sellerDetails = sellerDetailsRepository.findByUserIdEquals(byEmailEquals.get().getUserid());
+            return userMapper.sellerDetailsEntityToDTO(sellerDetails.get());
+        }catch (Exception e){
+            log.error(e.getMessage());
+            throw new UserNotFoundException();
+        }
     }
 
     @Override

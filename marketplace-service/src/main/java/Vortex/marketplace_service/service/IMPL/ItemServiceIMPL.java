@@ -1,16 +1,25 @@
 package Vortex.marketplace_service.service.IMPL;
 
 import Vortex.marketplace_service.collection.Item;
+import Vortex.marketplace_service.collection.ItemReview;
+import Vortex.marketplace_service.collection.Orders;
 import Vortex.marketplace_service.dto.request.AddItemDTO;
+import Vortex.marketplace_service.dto.request.UserByEmailDTO;
+import Vortex.marketplace_service.dto.response.AllItemReviewDTO;
+import Vortex.marketplace_service.dto.response.ItemReviewDTO;
 import Vortex.marketplace_service.enums.ItemStatus;
 import Vortex.marketplace_service.exception.ItemUnavailableException;
+import Vortex.marketplace_service.feign.AuthServiceProxy;
 import Vortex.marketplace_service.repository.ItemRepository;
+import Vortex.marketplace_service.repository.ItemReviewRepository;
+import Vortex.marketplace_service.repository.OrderRepository;
 import Vortex.marketplace_service.service.ItemService;
 import Vortex.marketplace_service.util.mappers.ItemMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,6 +31,9 @@ public class ItemServiceIMPL implements ItemService {
 
     private final ItemRepository itemRepository;
     private final ItemMapper itemMapper;
+    private final OrderRepository orderRepository;
+    private final ItemReviewRepository itemReviewRepository;
+    private final AuthServiceProxy authServiceProxy;
 
     public String generateId() {
         String uuid = UUID.randomUUID().toString();
@@ -109,6 +121,37 @@ public class ItemServiceIMPL implements ItemService {
             return itemMapper.entityToDTO(byId.get());
         }else {
             throw new ItemUnavailableException();
+        }
+    }
+
+    @Override
+    public AllItemReviewDTO getRatingsByItemID(String itemID) {
+        double rating = 0;
+        int reviewCount = 0;
+        List<ItemReviewDTO> itemReviewDTOS = new ArrayList<>();
+        List<ItemReview> itemReviewList = itemReviewRepository.findByItemIDEquals(itemID);
+        if(itemReviewList.size() ==0){
+            return new AllItemReviewDTO(0,itemReviewDTOS);
+        }else {
+            for(ItemReview itemReview:itemReviewList){
+                Optional<Orders> byId = orderRepository.findById(itemReview.getOrderID());
+                UserByEmailDTO user = authServiceProxy.getUser(byId.get().getBuyerID());
+                ItemReviewDTO itemReviewDTO = new ItemReviewDTO(
+                        byId.get().getOrderID(),
+                        byId.get().getBuyerID(),
+                        user.getFirstName() +" "+user.getLastName(),
+                        user.getProfilePhotoURL(),
+                        itemReview.getRate(),
+                        itemReview.getRateMessage()
+                );
+                itemReviewDTOS.add(itemReviewDTO);
+                rating+=itemReviewDTO.getRate();
+                reviewCount++;
+            }
+            return new AllItemReviewDTO(
+                    (rating/(double) reviewCount),
+                    itemReviewDTOS
+            );
         }
     }
 }

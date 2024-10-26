@@ -4,6 +4,7 @@ import Vortex.authservice.dto.UserDTO;
 import Vortex.authservice.dto.request.*;
 import Vortex.authservice.dto.response.AuthResponseDTO;
 import Vortex.authservice.dto.response.OtpResponse;
+import Vortex.authservice.dto.response.SellerDetailsDTO;
 import Vortex.authservice.dto.response.UserByEmailDTO;
 import Vortex.authservice.service.UserService;
 import Vortex.authservice.util.StandardResponse;
@@ -137,5 +138,9 @@ public class UserController {
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200,"User Removed Status : ", userService.removeUser(userEmail)),HttpStatus.OK
         );
+    }
+    @GetMapping("getSellerDetails")
+    public SellerDetailsDTO getSellerDetails(@RequestParam("sellerID")String sellerID){
+        return userService.getSellerDetails(sellerID);
     }
 }
