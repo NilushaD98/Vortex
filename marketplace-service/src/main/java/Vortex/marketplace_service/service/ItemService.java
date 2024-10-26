@@ -16,4 +16,6 @@ public interface ItemService {
     List<AddItemDTO> getAllItemBySellerID(String sellerID);
 
     List<AddItemDTO> getAllUnPublishItems();
+
+    AddItemDTO getItemById(String itemID);
 }

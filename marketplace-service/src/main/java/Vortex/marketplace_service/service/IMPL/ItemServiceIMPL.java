@@ -3,6 +3,7 @@ package Vortex.marketplace_service.service.IMPL;
 import Vortex.marketplace_service.collection.Item;
 import Vortex.marketplace_service.dto.request.AddItemDTO;
 import Vortex.marketplace_service.enums.ItemStatus;
+import Vortex.marketplace_service.exception.ItemUnavailableException;
 import Vortex.marketplace_service.repository.ItemRepository;
 import Vortex.marketplace_service.service.ItemService;
 import Vortex.marketplace_service.util.mappers.ItemMapper;
@@ -98,5 +99,16 @@ public class ItemServiceIMPL implements ItemService {
 
         List<Item> itemList = itemRepository.getAllByItemStatusEquals(ItemStatus.DISABLED);
         return itemMapper.entityListToDTOList(itemList);
+    }
+
+    @Override
+    public AddItemDTO getItemById(String itemID) {
+
+        Optional<Item> byId = itemRepository.findById(itemID);
+        if(byId.isPresent()){
+            return itemMapper.entityToDTO(byId.get());
+        }else {
+            throw new ItemUnavailableException();
+        }
     }
 }

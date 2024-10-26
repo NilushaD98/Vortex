@@ -15,14 +15,12 @@
 	<packaging>pom</packaging>
 	<description>Vortex Parent Project</description>
 	<modules>
-		<module>config-server</module>
 		<module>gateway</module>
 		<module>discovery-server</module>
 		<module>auth-service</module>
 		<module>user-service</module>
 		<module>notification-service</module>
 		<module>post-service</module>
-		<module>admin-service</module>
 		<module>marketplace-service</module>
 	</modules>
 	<build>

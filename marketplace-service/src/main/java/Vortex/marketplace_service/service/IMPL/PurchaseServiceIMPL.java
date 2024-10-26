@@ -33,7 +33,7 @@ public class PurchaseServiceIMPL implements PurchaseService {
             throw new ItemUnavailableException();
         }else{
             //transfer ethereum if not success then throw error name as payment unsuccessful;
-
+            // send email to both seller and buyer
             Orders orders = new Orders(
                     idGenerator(),
                     orderDTO.getItemID(),
@@ -73,5 +73,5 @@ public class PurchaseServiceIMPL implements PurchaseService {
 
 
 //endpoints
-1. update order status - seller
-2.get all order details - seller/customer(include item data)
+//1. update order status - seller
+//2.get all order details - seller/customer(include item data)

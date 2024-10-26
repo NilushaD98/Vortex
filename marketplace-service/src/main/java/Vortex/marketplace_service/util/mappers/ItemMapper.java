@@ -9,4 +9,6 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ItemMapper {
     List<AddItemDTO> entityListToDTOList(List<Item> itemList);
+
+    AddItemDTO entityToDTO(Item item);
 }

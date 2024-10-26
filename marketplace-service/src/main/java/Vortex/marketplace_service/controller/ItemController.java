@@ -52,4 +52,11 @@ public class ItemController {
                 new StandardResponse(200,"",itemService.getAllUnPublishItems()),HttpStatus.OK
         );
     }
+
+    @GetMapping("getItemById")
+    public ResponseEntity<StandardResponse> getItemById(@RequestParam("itemID")String itemID){
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(200,"Item By ID",itemService.getItemById(itemID)),HttpStatus.OK
+        );
+    }
 }
