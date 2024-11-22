@@ -38,6 +38,7 @@ public class OrderServiceIMPL implements OrderService {
         for (OrderDetailsDTO orderDetailsDTO:orderDetailsDTOList){
             Optional<Item> byId = itemRepository.findById(orderDetailsDTO.getItemID());
             Optional<ItemReview> itemReview = itemReviewRepository.findByOrderIDEquals(orderDetailsDTO.getOrderID());
+            log.info(""+itemReview.isPresent());
             orderDetailsDTO.setRate(itemReview.isPresent() == true ? itemReview.get().getRate():0);
             orderDetailsDTO.setRateMessage(itemReview.isPresent() == true ? itemReview.get().getRateMessage():"");
             orderDetailsDTO.setItemName(byId.get().getItemName());
@@ -57,13 +58,23 @@ public class OrderServiceIMPL implements OrderService {
     public Boolean rateOrder(RateOrderDTO rateOrderDTO) {
         try {
             Optional<Orders> byId = orderRepository.findById(rateOrderDTO.getOrderID());
-            ItemReview itemReview = new ItemReview(
-                    byId.get().getOrderID(),
-                    byId.get().getItemID(),
-                    rateOrderDTO.getRate(),
-                    rateOrderDTO.getRateMessage()
-            );
-            itemReviewRepository.save(itemReview);
+            Optional<ItemReview> itemRevieww = itemReviewRepository.findByOrderIDEquals(rateOrderDTO.getOrderID());
+            if(itemRevieww.isPresent()){
+                itemRevieww.get().setRate(rateOrderDTO.getRate());
+                itemRevieww.get().setRateMessage(rateOrderDTO.getRateMessage());
+                itemReviewRepository.save(itemRevieww.get());
+
+            }else {
+                ItemReview itemReview = new ItemReview(
+                        byId.get().getOrderID(),
+                        byId.get().getItemID(),
+                        rateOrderDTO.getRate(),
+                        rateOrderDTO.getRateMessage()
+                );
+                itemReviewRepository.save(itemReview);
+
+            }
+
             return true;
         }catch (Exception e){
             log.error(e.getMessage());
