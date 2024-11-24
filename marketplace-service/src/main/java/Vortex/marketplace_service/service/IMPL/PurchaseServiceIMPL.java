@@ -41,6 +41,7 @@ public class PurchaseServiceIMPL implements PurchaseService {
             //get seller wallet address from auth service
             Orders orders = new Orders(
                     idGenerator(),
+                    orderDTO.getTransactionID(),
                     orderDTO.getItemID(),
                     orderDTO.getQuantity(),
                     orderDTO.getBuyerID(),

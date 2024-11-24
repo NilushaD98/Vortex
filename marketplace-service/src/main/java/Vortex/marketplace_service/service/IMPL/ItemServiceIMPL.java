@@ -7,6 +7,7 @@ import Vortex.marketplace_service.dto.request.AddItemDTO;
 import Vortex.marketplace_service.dto.request.UserByEmailDTO;
 import Vortex.marketplace_service.dto.response.AllItemReviewDTO;
 import Vortex.marketplace_service.dto.response.ItemReviewDTO;
+import Vortex.marketplace_service.dto.response.SellerDetailsDTO;
 import Vortex.marketplace_service.enums.ItemStatus;
 import Vortex.marketplace_service.exception.ItemUnavailableException;
 import Vortex.marketplace_service.feign.AuthServiceProxy;
@@ -97,13 +98,24 @@ public class ItemServiceIMPL implements ItemService {
     @Override
     public List<AddItemDTO> getAllActiveItems() {
         List<Item> itemList = itemRepository.getAllByItemStatusEquals(ItemStatus.ACTIVE);
-        return itemMapper.entityListToDTOList(itemList);
+        List<AddItemDTO> addItemDTOS = itemMapper.entityListToDTOList(itemList);
+        for(AddItemDTO item:addItemDTOS){
+            SellerDetailsDTO sellerDetails = authServiceProxy.getSellerDetails(item.getSellerID());
+            item.setSellerWalletID(sellerDetails.getMetaMaskID());
+        }
+        return addItemDTOS;
     }
 
     @Override
     public List<AddItemDTO> getAllItemBySellerID(String sellerID) {
         List<Item> itemList = itemRepository.getAllBySellerIDEquals(sellerID);
-        return itemMapper.entityListToDTOList(itemList);
+        SellerDetailsDTO sellerDetails = authServiceProxy.getSellerDetails(sellerID);
+        List<AddItemDTO> addItemDTOS = itemMapper.entityListToDTOList(itemList);
+        for(AddItemDTO addItemDTO :addItemDTOS){
+            addItemDTO.setSellerWalletID(sellerDetails.getMetaMaskID());
+        }
+        return addItemDTOS;
+
     }
 
     @Override
@@ -117,8 +129,11 @@ public class ItemServiceIMPL implements ItemService {
     public AddItemDTO getItemById(String itemID) {
 
         Optional<Item> byId = itemRepository.findById(itemID);
+        SellerDetailsDTO sellerDetails = authServiceProxy.getSellerDetails(byId.get().getSellerID());
         if(byId.isPresent()){
-            return itemMapper.entityToDTO(byId.get());
+            AddItemDTO addItemDTO = itemMapper.entityToDTO(byId.get());
+            addItemDTO.setSellerWalletID(sellerDetails.getMetaMaskID());
+            return addItemDTO;
         }else {
             throw new ItemUnavailableException();
         }

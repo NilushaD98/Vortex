@@ -16,6 +16,7 @@ public class AddItemDTO {
     private String itemImageURL;
     private Double price;
     private String sellerID;
+    private String sellerWalletID;
     private int quantity;
     private ItemStatus itemStatus;
 

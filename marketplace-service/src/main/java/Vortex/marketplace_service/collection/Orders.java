@@ -17,6 +17,7 @@ public class Orders {
 
     @Id
     private String orderID;
+    private String transactionID;
     private String itemID;
     private int quantity;
     private String buyerID;

@@ -11,6 +11,7 @@ import lombok.Setter;
 @Getter
 public class OrderDTO {
 
+    private String transactionID;
     private String itemID;
     private int quantity;
     private String buyerID;

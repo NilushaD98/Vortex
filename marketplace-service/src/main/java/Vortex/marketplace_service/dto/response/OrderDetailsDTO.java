@@ -13,6 +13,7 @@ import lombok.Setter;
 public class OrderDetailsDTO {
 
     private String orderID;
+    private String transactionID;
     private String itemID;
     private String itemName;
     private String itemImageURL;
