@@ -1,5 +1,6 @@
 package Vortex.authservice.exceptions;
 
+import Vortex.authservice.util.StandardResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -29,10 +30,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body("The Email Service Not Available");
     }
     @ExceptionHandler(BadCredentialException.class)
-    public ResponseEntity<Object> handleBadCredentialException(
+    public ResponseEntity<StandardResponse> handleBadCredentialException(
             BadCredentialException ex,WebRequest request
     ){
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username or Password Invalid");
+        String message  = "Username or Password Invalid";
+        return new ResponseEntity<StandardResponse>(
+                new StandardResponse(401,"Unauthorized Reason",message),HttpStatus.UNAUTHORIZED
+        );
+
     }
 
 }
